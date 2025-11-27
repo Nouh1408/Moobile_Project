@@ -22,7 +22,7 @@ const ReportLostItem = () => {
         
         <CategoryType iconName="mobile" title="Devices" description="Phones, tablets, laptops" />
         <CategoryType iconName="wallet" title="Wallets" description="Credit cards, cash, IDs" />
-        <CategoryType iconName="credit-card" title="Books" description="Textbooks, notebooks" />
+        <CategoryType iconName="credit-card" title="id" description="Identification cards, driver's licenses" />
 
       </View>
     </SafeAreaView>

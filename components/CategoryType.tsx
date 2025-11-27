@@ -3,7 +3,7 @@ import React from "react";
 import Entypo from "@expo/vector-icons/Entypo";
 
 interface CategoryTypeProps {
-  iconName: React.ComponentProps<typeof Entypo>["name"]; // valid icon name
+  iconName: React.ComponentProps<typeof Entypo>["name"]; 
   title: string;
   description: string;
 }
