@@ -20,9 +20,15 @@ const ReportLostItem = () => {
       <View className="flex-row flex-wrap justify-between">
         
         
-        <CategoryType iconName="mobile" title="Devices" description="Phones, tablets, laptops" />
-        <CategoryType iconName="wallet" title="Wallets" description="Credit cards, cash, IDs" />
-        <CategoryType iconName="credit-card" title="id" description="Identification cards, driver's licenses" />
+        <Pressable className='w-full'>
+          <CategoryType iconName="mobile" title="Devices" description="Phones, tablets, laptops" />
+        </Pressable>
+        <Pressable className='w-full'>
+          <CategoryType iconName="wallet" title="Wallets" description="Credit cards, cash, IDs" />
+        </Pressable>
+        <Pressable className='w-full'>
+          <CategoryType iconName="credit-card" title="Ids" description="Identification cards, driver's licenses" />
+        </Pressable>
 
       </View>
     </SafeAreaView>

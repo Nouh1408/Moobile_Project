@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CategoryType from '@/components/CategoryType'
@@ -19,9 +19,15 @@ const ReportFoundItem = () => {
       <View className="flex-row flex-wrap justify-between">
         
         
-        <CategoryType iconName="mobile" title="Devices" description="Phones, tablets, laptops" />
-        <CategoryType iconName="wallet" title="Wallets" description="Credit cards, cash, IDs" />
-        <CategoryType iconName="credit-card" title="Ids" description="Identification cards, driver's licenses" />
+        <Pressable className='w-full'>
+          <CategoryType iconName="mobile" title="Devices" description="Phones, tablets, laptops" />
+        </Pressable>
+        <Pressable className='w-full'>
+          <CategoryType iconName="wallet" title="Wallets" description="Credit cards, cash, IDs" />
+        </Pressable>
+        <Pressable className='w-full'>
+          <CategoryType iconName="credit-card" title="Ids" description="Identification cards, driver's licenses" />
+        </Pressable>
 
       </View>
     </SafeAreaView>
