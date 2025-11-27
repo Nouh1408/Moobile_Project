@@ -24,7 +24,7 @@ export default function Index() {
         
         <Pressable 
           className="flex-1 bg-orange-600 py-4 rounded-xl flex-row justify-center items-center"
-          onPress={()=>router.push("/(tabs)/ReportlostItem")}
+          onPress={()=>router.push("/(tabs)/ReportLostItem")}
         >
           <SimpleLineIcons name="magnifier" size={24} color="white" />
           <Text className="text-white font-semibold ml-2">Report Lost Item</Text>
