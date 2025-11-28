@@ -1,45 +1,188 @@
-import React from "react";
-import { Text, TextInput, View } from "react-native";
+import React, { useState } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-const FormLost = () => {
+export default function FormLost() {
+  const router = useRouter();
+
+  
+  const [itemName, setItemName] = useState("");
+  const [locationFound, setLocationFound] = useState("");
+  const [foundDate, setFoundDate] = useState("");
+  const [note, setNote] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const isValidPhone = (s: string) =>
+    s.trim().length >= 7 && /^[0-9+\-\s()]+$/.test(s.trim());
+
+  const canSubmit =
+    itemName.trim().length >= 1 &&
+    locationFound.trim().length >= 2 &&
+    contactName.trim().length >= 2 &&
+    isValidPhone(contactPhone);
+
+  const onSubmit = async () => {
+    if (!canSubmit) {
+      Alert.alert("Incomplete", "Please fill all required fields correctly.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await new Promise((res) => setTimeout(res, 900));
+
+      setLoading(false);
+      Alert.alert(
+        "Report submitted",
+        "Thank you — your found-item report has been submitted.",
+        [{ text: "OK", onPress: () => router.back() }]
+      );
+
+     
+      setItemName("");
+      setLocationFound("");
+      setFoundDate("");
+      setNote("");
+      setContactName("");
+      setContactPhone("");
+    } catch (e) {
+      setLoading(false);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-white px-4">
-      <View className="mt-4 mb-6">
-        <Text className="font-bold text-2xl">Report Lost Item</Text>
-        <View className="mt-3">
-          <Text className="font-bold">Item Description</Text>
-          <TextInput placeholder="Describe your Lost item in detail"
-            className="border border-gray-300 rounded-md p-1 mt-1 py-5"
-          />
-        </View>
-        <View className="mt-3">
-          <Text className="font-bold">Last Known Location</Text>
-          <TextInput placeholder="Describe where you last saw your lost item"
-            className="border border-gray-300 rounded-md p-2 mt-1"
-          />
-        </View>
-        <View className="border mt-5 border-gray-300 rounded-md "/> 
-        <View className="mt-3">
-          <Text className="font-bold">Security Verification</Text>
-          <Text>Create a security question to verify ownership when someone claims to have found your item.</Text>
-        </View>
-        <View className="mt-3">
-          <Text className="font-bold">Security Question</Text>
-          <TextInput placeholder="E.g., What is the wallpaper"
-            className="border border-gray-300 rounded-md p-1 mt-1 py-5"
-          />
-        </View>
-        <View className="mt-3">
-          <Text className="font-bold">Answer</Text>
-          <TextInput placeholder="your answer"
-            className="border border-gray-300 rounded-md p-1 mt-1 py-5"
-          />
-        </View>
+    <SafeAreaView className="flex-1 bg-white">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1"
+      >
+        <ScrollView
+          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="mb-4">
+            <Text className="text-2xl font-bold">Report Found Item</Text>
+            <Text className="text-sm text-slate-500 mt-1">
+              Tell us what you found and how we can contact you.
+            </Text>
+          </View>
 
-      </View>
+          <View className="space-y-4">
+           
+            <View>
+              <Text className="font-semibold mb-2">What is the item?</Text>
+              <TextInput
+                value={itemName}
+                onChangeText={setItemName}
+                placeholder="e.g., Black iPhone, Red Wallet"
+                className="border border-gray-300 rounded-md p-3 text-base bg-white"
+              />
+              <Text className="text-xs text-slate-400 mt-1">
+                This should be a short name (no long description).
+              </Text>
+            </View>
+
+           
+            <View>
+              <Text className="font-semibold mb-2">Location Found</Text>
+              <TextInput
+                value={locationFound}
+                onChangeText={setLocationFound}
+                placeholder="Where did you find it? (e.g., Cairo Mall, Gate 2)"
+                className="border border-gray-300 rounded-md p-3 text-base bg-white"
+              />
+            </View>
+
+            <View>
+              <Text className="font-semibold mb-2">Date / Time Found (optional)</Text>
+              <TextInput
+                value={foundDate}
+                onChangeText={setFoundDate}
+                placeholder="e.g., 2025-11-28 14:30 or Yesterday evening"
+                className="border border-gray-300 rounded-md p-3 text-base bg-white"
+              />
+            </View>
+
+            
+            <View>
+              <Text className="font-semibold mb-2">Short Note (optional)</Text>
+              <TextInput
+                value={note}
+                onChangeText={setNote}
+                placeholder="Any quick note (e.g., found near cashier)"
+                className="border border-gray-300 rounded-md p-3 text-base bg-white"
+              />
+            </View>
+
+       
+            <View className="h-px bg-gray-200 my-4" />
+
+            
+            <View>
+              <Text className="font-semibold mb-2">Your Name</Text>
+              <TextInput
+                value={contactName}
+                onChangeText={setContactName}
+                placeholder="Your full name"
+                className="border border-gray-300 rounded-md p-3 text-base bg-white"
+              />
+            </View>
+
+            <View>
+              <Text className="font-semibold mb-2">Contact Phone</Text>
+              <TextInput
+                value={contactPhone}
+                onChangeText={setContactPhone}
+                placeholder="Phone or WhatsApp number"
+                keyboardType="phone-pad"
+                className="border border-gray-300 rounded-md p-3 text-base bg-white"
+              />
+              {!isValidPhone(contactPhone) && contactPhone.length > 0 && (
+                <Text className="text-xs text-red-500 mt-1">
+                  Please enter a valid phone number.
+                </Text>
+              )}
+            </View>
+
+          
+            <View className="mt-6">
+              <Pressable
+                onPress={onSubmit}
+                disabled={!canSubmit || loading}
+                className={`rounded-lg p-4 items-center ${
+                  canSubmit && !loading ? "bg-green-600" : "bg-green-200"
+                }`}
+                style={{ opacity: loading ? 0.9 : 1 }}
+              >
+                <Text className="text-white font-semibold">
+                  {loading ? "Submitting..." : "Submit Found Report"}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => router.back()}
+                className="mt-3 rounded-lg p-3 items-center border border-gray-200"
+              >
+                <Text className="text-gray-700">Cancel</Text>
+              </Pressable>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
-};
-
-export default FormLost;
+}
