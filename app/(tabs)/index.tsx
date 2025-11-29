@@ -24,7 +24,7 @@ export default function Index() {
         
         <Pressable 
           className="flex-1 bg-orange-600 py-4 rounded-xl flex-row justify-center items-center"
-          onPress={()=>router.push("/(tabs)/ReportLostItem")}
+          onPress={()=>router.push("/ReportLostItem")}
         >
           <SimpleLineIcons name="magnifier" size={24} color="white" />
           <Text className="text-white font-semibold ml-2">Report Lost Item</Text>
@@ -33,7 +33,7 @@ export default function Index() {
         
         <Pressable 
           className="flex-1 bg-green-600 py-4 rounded-xl flex-row justify-center items-center"
-          onPress={()=>router.push("/(tabs)/ReportFoundItem")}
+          onPress={()=>router.push("/ReportFoundItem")}
         >
           <Ionicons name="add" size={24} color="white" />
           <Text className="text-white font-semibold ml-2">Report Found Item</Text>

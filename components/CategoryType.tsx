@@ -10,7 +10,7 @@ interface CategoryTypeProps {
 
 const CategoryType = ({ iconName, title, description }: CategoryTypeProps) => {
   return (
-    <View className="w-full bg-slate-100 rounded-xl p-4 mb-4 items-center">
+    <View className="w-full border border-black bg-slate-100 rounded-xl p-4 mb-4 items-center">
       <Entypo name={iconName} size={40} color="#1f2937" />
       <Text className="font-semibold mt-2">{title}</Text>
       <Text className="text-sm text-slate-600 text-center mt-1">
