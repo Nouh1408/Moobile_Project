@@ -4,6 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { Image, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import HIW from "@/components/HIW";
 
 export default function Index() {
   const router = useRouter();
@@ -38,7 +39,14 @@ export default function Index() {
           <Ionicons name="add" size={24} color="white" />
           <Text className="text-white font-semibold ml-2">Report Found Item</Text>
         </Pressable>
+        
       </View>
+      <View>
+          <Text className="text-2xl font-semibold mt-8 text-center">How it Works?</Text>
+          <HIW title="1. Report Your Item" description="Lost something? Create a detailed report with a security question." bg="#f9ede3"/>
+          <HIW title="2. Help Others" description="Found something? Report it to help the owner find it." bg="#e2f1e8"/>
+          <HIW title="3. Verify & Recover" description="Answer security questions to prove ownership and recover your item." bg="#e6eefa"/>
+        </View>
     </SafeAreaView>
   );
 }

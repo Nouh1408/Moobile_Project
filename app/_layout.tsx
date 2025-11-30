@@ -8,8 +8,7 @@ export default function RootLayout() {
       
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       
-      <Stack.Screen name="ReportFoundItem" options={{ headerShown: false }} />
-      <Stack.Screen name="ReportLostItem" options={{ headerShown: false }} />
+      
     </Stack>
   );
 }
