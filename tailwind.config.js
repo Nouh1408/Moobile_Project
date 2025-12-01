@@ -6,8 +6,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        smallText:'#667b99'
+        smallText:'#667b99',
+        
       },
+      backgroundColor:{
+homeBG:"#fbfbfb"
+      }
     },
   },
   plugins: [],

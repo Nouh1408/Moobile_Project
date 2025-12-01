@@ -2,7 +2,7 @@ import { image } from "@/constants/images";
 import { useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
-import { Image, Text, View, Pressable } from "react-native";
+import { Image, Text, View, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import HIW from "@/components/HIW";
 
@@ -10,7 +10,8 @@ export default function Index() {
   const router = useRouter();
 
   return (
-    <SafeAreaView className="flex-1 items-center pt-8 px-4 bg-white">
+    <ScrollView className="flex-1 bg-homeBG">
+      <SafeAreaView className="flex-1 items-center pt-8 px-4 ">
       
       <View className="w-full">
         <Image
@@ -48,5 +49,6 @@ export default function Index() {
           <HIW title="3. Verify & Recover" description="Answer security questions to prove ownership and recover your item." bg="#e6eefa"/>
         </View>
     </SafeAreaView>
+    </ScrollView>
   );
 }

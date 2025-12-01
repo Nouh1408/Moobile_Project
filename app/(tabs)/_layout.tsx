@@ -7,13 +7,14 @@ export default function Layout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: "#0CA5A0",     // soft teal
-        tabBarInactiveTintColor: "#94A3B8",   // cool gray
+        tabBarActiveTintColor: "#0CA5A0",    
+        tabBarInactiveTintColor: "#94A3B8",  
         tabBarStyle: {
           height: 62,
-          paddingBottom: 8,
+          paddingBottom: 10,
+          marginBottom:0,
           paddingTop: 6,
-          backgroundColor: "#FFFFFF",
+          backgroundColor: "#ffffff",
           borderTopLeftRadius: 22,
           borderTopRightRadius: 22,
           borderTopWidth: 0,
@@ -22,6 +23,8 @@ export default function Layout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "600",
+          
+          
         },
       }}
     >
