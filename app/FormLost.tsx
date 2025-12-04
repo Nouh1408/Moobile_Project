@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import UseLocation from "@/hooks/UseLocation";
+import useLocation from "@/hooks/UseLocation";
 
 export default function FormLost() {
   const router = useRouter();
@@ -23,7 +23,9 @@ export default function FormLost() {
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const { latitude, longitude, errorMsg } = UseLocation();
+
+  
+  const { latitude, longitude, errorMsg } = useLocation();
 
   const isValidPhone = (s: string) =>
     s.trim().length >= 7 && /^[0-9+\-\s()]+$/.test(s.trim());
@@ -34,6 +36,19 @@ export default function FormLost() {
     contactName.trim().length >= 2 &&
     isValidPhone(contactPhone);
 
+  const onUseCurrentLocation = () => {
+    if (errorMsg) {
+      Alert.alert("Location Error", errorMsg);
+      return;
+    }
+
+    if (latitude && longitude) {
+      setLocationFound(`${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}`);
+    } else {
+      Alert.alert("Location Unavailable", "Unable to get your position yet.");
+    }
+  };
+
   const onSubmit = async () => {
     if (!canSubmit) {
       Alert.alert("Incomplete", "Please fill all required fields correctly.");
@@ -41,7 +56,6 @@ export default function FormLost() {
     }
 
     setLoading(true);
-
     try {
       await new Promise((res) => setTimeout(res, 900));
 
@@ -82,6 +96,7 @@ export default function FormLost() {
           </View>
 
           <View className="space-y-4">
+            {/* Item */}
             <View>
               <Text className="font-semibold mb-2">What is the item?</Text>
               <TextInput
@@ -92,8 +107,28 @@ export default function FormLost() {
               />
             </View>
 
+            
             <View>
               <Text className="font-semibold mb-2">Location Found</Text>
+
+              
+              <Pressable
+                onPress={onUseCurrentLocation}
+                className="rounded-md bg-blue-600 p-3 items-center mb-2"
+              >
+                <Text className="text-white font-semibold">
+                  Use my current location
+                </Text>
+              </Pressable>
+
+              
+              {latitude && longitude && (
+                <Text className="text-xs text-gray-500 mb-1">
+                  setLocationFound(`${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}`);
+
+                </Text>
+              )}
+
               <TextInput
                 value={locationFound}
                 onChangeText={setLocationFound}
@@ -102,6 +137,7 @@ export default function FormLost() {
               />
             </View>
 
+            {/* Date */}
             <View>
               <Text className="font-semibold mb-2">
                 Date / Time Found (optional)
@@ -114,6 +150,7 @@ export default function FormLost() {
               />
             </View>
 
+            {/* Note */}
             <View>
               <Text className="font-semibold mb-2">Short Note (optional)</Text>
               <TextInput
@@ -126,6 +163,7 @@ export default function FormLost() {
 
             <View className="h-px bg-gray-200 my-4" />
 
+            {/* Contact Name */}
             <View>
               <Text className="font-semibold mb-2">Your Name</Text>
               <TextInput
@@ -136,6 +174,7 @@ export default function FormLost() {
               />
             </View>
 
+            {/* Contact Phone */}
             <View>
               <Text className="font-semibold mb-2">Contact Phone</Text>
               <TextInput
@@ -152,6 +191,7 @@ export default function FormLost() {
               )}
             </View>
 
+            {/* Submit */}
             <View className="mt-6">
               <Pressable
                 onPress={onSubmit}

@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import * as Location from 'expo-location';
 
-const UseLocation = () => {
+const useLocation = () => {
     const [errorMsg, setErrorMsg] = useState('');
     const [longitude, setLongitude] = useState("")
     const [latitude, setLatitude] = useState("")
@@ -32,4 +32,4 @@ const UseLocation = () => {
         return { latitude, longitude, errorMsg}
       }
 
-export default UseLocation
+export default useLocation
