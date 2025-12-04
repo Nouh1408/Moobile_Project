@@ -62,7 +62,7 @@ export default function FormLost() {
       setLoading(false);
       Alert.alert(
         "Report submitted",
-        "Thank you — your found-item report has been submitted.",
+        "Thank you — your lost-item report has been submitted.",
         [{ text: "OK", onPress: () => router.back() }]
       );
 
@@ -96,7 +96,7 @@ export default function FormLost() {
           </View>
 
           <View className="space-y-4">
-            {/* Item */}
+            
             <View>
               <Text className="font-semibold mb-2">What is the item?</Text>
               <TextInput
@@ -137,7 +137,7 @@ export default function FormLost() {
               />
             </View>
 
-            {/* Date */}
+            
             <View>
               <Text className="font-semibold mb-2">
                 Date / Time Found (optional)
@@ -150,7 +150,7 @@ export default function FormLost() {
               />
             </View>
 
-            {/* Note */}
+            
             <View>
               <Text className="font-semibold mb-2">Short Note (optional)</Text>
               <TextInput
@@ -163,7 +163,7 @@ export default function FormLost() {
 
             <View className="h-px bg-gray-200 my-4" />
 
-            {/* Contact Name */}
+            
             <View>
               <Text className="font-semibold mb-2">Your Name</Text>
               <TextInput
@@ -174,7 +174,7 @@ export default function FormLost() {
               />
             </View>
 
-            {/* Contact Phone */}
+            
             <View>
               <Text className="font-semibold mb-2">Contact Phone</Text>
               <TextInput
@@ -191,7 +191,7 @@ export default function FormLost() {
               )}
             </View>
 
-            {/* Submit */}
+            
             <View className="mt-6">
               <Pressable
                 onPress={onSubmit}
@@ -202,7 +202,7 @@ export default function FormLost() {
                 style={{ opacity: loading ? 0.9 : 1 }}
               >
                 <Text className="text-white font-semibold">
-                  {loading ? "Submitting..." : "Submit Found Report"}
+                  {loading ? "Submitting..." : "Submit dawdawdwa Report"}
                 </Text>
               </Pressable>
 
