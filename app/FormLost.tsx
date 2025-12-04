@@ -11,11 +11,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import UseLocation from "@/hooks/UseLocation";
 
 export default function FormLost() {
   const router = useRouter();
 
-  
   const [itemName, setItemName] = useState("");
   const [locationFound, setLocationFound] = useState("");
   const [foundDate, setFoundDate] = useState("");
@@ -23,6 +23,7 @@ export default function FormLost() {
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [loading, setLoading] = useState(false);
+  const { latitude, longitude, errorMsg } = UseLocation();
 
   const isValidPhone = (s: string) =>
     s.trim().length >= 7 && /^[0-9+\-\s()]+$/.test(s.trim());
@@ -51,7 +52,6 @@ export default function FormLost() {
         [{ text: "OK", onPress: () => router.back() }]
       );
 
-     
       setItemName("");
       setLocationFound("");
       setFoundDate("");
@@ -75,14 +75,13 @@ export default function FormLost() {
           showsVerticalScrollIndicator={false}
         >
           <View className="mb-4">
-            <Text className="text-2xl font-bold">Report Found Item</Text>
+            <Text className="text-2xl font-bold">Report Lost Item</Text>
             <Text className="text-sm text-slate-500 mt-1">
-              Tell us what you found and how we can contact you.
+              Tell us what you lost and how we can contact you.
             </Text>
           </View>
 
           <View className="space-y-4">
-           
             <View>
               <Text className="font-semibold mb-2">What is the item?</Text>
               <TextInput
@@ -91,12 +90,8 @@ export default function FormLost() {
                 placeholder="e.g., Black iPhone, Red Wallet"
                 className="border border-gray-300 rounded-md p-3 text-base bg-white"
               />
-              <Text className="text-xs text-slate-400 mt-1">
-                This should be a short name (no long description).
-              </Text>
             </View>
 
-           
             <View>
               <Text className="font-semibold mb-2">Location Found</Text>
               <TextInput
@@ -108,7 +103,9 @@ export default function FormLost() {
             </View>
 
             <View>
-              <Text className="font-semibold mb-2">Date / Time Found (optional)</Text>
+              <Text className="font-semibold mb-2">
+                Date / Time Found (optional)
+              </Text>
               <TextInput
                 value={foundDate}
                 onChangeText={setFoundDate}
@@ -117,7 +114,6 @@ export default function FormLost() {
               />
             </View>
 
-            
             <View>
               <Text className="font-semibold mb-2">Short Note (optional)</Text>
               <TextInput
@@ -128,10 +124,8 @@ export default function FormLost() {
               />
             </View>
 
-       
             <View className="h-px bg-gray-200 my-4" />
 
-            
             <View>
               <Text className="font-semibold mb-2">Your Name</Text>
               <TextInput
@@ -158,7 +152,6 @@ export default function FormLost() {
               )}
             </View>
 
-          
             <View className="mt-6">
               <Pressable
                 onPress={onSubmit}
