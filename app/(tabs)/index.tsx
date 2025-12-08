@@ -44,7 +44,7 @@ export default function Index() {
       </View>
       <View>
           <Text className="text-2xl font-semibold mt-8 text-center">How it Works?</Text>
-          <HIW title="1. Report Your Item" description="Lost something? Create a detailed report with a security question." bg="#f9ede3"/>
+          <HIW title="1. Report Your Item" description="Lost something? Create a detailed report describing your lost item." bg="#f9ede3"/>
           <HIW title="2. Help Others" description="Found something? Report it to help the owner find it." bg="#e2f1e8"/>
           <HIW title="3. Verify & Recover" description="Answer security questions to prove ownership and recover your item." bg="#e6eefa"/>
         </View>

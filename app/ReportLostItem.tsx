@@ -15,22 +15,16 @@ const ReportLostItem = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1 px-4 pt-2">
-
-        
-        <View className="mt-4 mb-4">
-          <Text className="font-bold text-3xl text-slate-900">
-            Report Lost Item
-          </Text>
-          <Text className="text-sm text-slate-600 mt-2">
+        <View className="mt-1 mb-3">
+          <Text className="font-bold text-2xl">
             Select the category that best matches what you lost.
           </Text>
         </View>
 
-        
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 16 }}
+          contentContainerStyle={{ paddingBottom: 12 }}
         >
           <View className="gap-1">
             <Pressable className="w-full" onPress={goToForm}>
@@ -67,16 +61,12 @@ const ReportLostItem = () => {
           </View>
         </ScrollView>
 
-        
-                
-        <View className="mb-10">
+        <View className="mb-20 px-1 mt-4">
           <View className="flex-row items-start bg-slate-100 rounded-3xl px-4 py-4">
             <Entypo name="light-bulb" size={22} color="#2563EB" />
 
             <View className="ml-3 flex-1">
-              <Text className="text-sm font-semibold text-slate-900">
-                Tip
-              </Text>
+              <Text className="text-sm font-semibold text-slate-900">Tip</Text>
 
               <Text className="text-sm text-slate-600 mt-1 leading-[18px]">
                 Choose the closest category — you’ll be able to add a full
@@ -85,7 +75,6 @@ const ReportLostItem = () => {
             </View>
           </View>
         </View>
-
       </View>
     </SafeAreaView>
   );
