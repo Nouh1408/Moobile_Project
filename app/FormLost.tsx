@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import useLocation from "@/hooks/UseLocation";
+import useLocation from "@/hooks/useLocation";
 
 export default function FormLost() {
   const router = useRouter();
