@@ -2,9 +2,12 @@ import { View, Text, Pressable } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CategoryType from '@/components/CategoryType'
-import { useRouter } from 'expo-router'
+import { router, useRouter } from 'expo-router'
 
 const ReportFoundItem = () => {
+  const goToForm = () => {
+    router.push("/FormFound");
+  };
   const route = useRouter();
   return (
       <SafeAreaView className="flex-1 bg-white px-4">
@@ -30,6 +33,14 @@ const ReportFoundItem = () => {
         <Pressable className='w-full' onPress={()=>route.push('/FormFound')}>
           <CategoryType iconName="credit-card" title="Ids" description="Identification cards, driver's licenses" />
         </Pressable>
+        <Pressable className="w-full" onPress={goToForm}>
+              <CategoryType
+                iconName="add-to-list"
+                title="Other"
+                description="Bags, accessories, and other items"
+              />
+            </Pressable>
+        
 
       </View>
     </SafeAreaView>
