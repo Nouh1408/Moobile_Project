@@ -2,7 +2,7 @@ import { image } from "@/constants/images";
 import { useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
-import { Image, Text, View, Pressable, ScrollView } from "react-native";
+import { Image, Text, View, Pressable, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import HIW from "@/components/HIW";
 
@@ -10,7 +10,9 @@ export default function Index() {
   const router = useRouter();
 
   return (
+    
     <ScrollView className="flex-1 bg-homeBG">
+      <StatusBar backgroundColor={"black"} />
       <SafeAreaView className="flex-1 items-center pt-8 px-4 ">
       
       <View className="w-full">
