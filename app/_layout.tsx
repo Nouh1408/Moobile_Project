@@ -1,10 +1,12 @@
 
 import { Stack } from "expo-router";
+import { AuthProvider } from "../_providers/AuthProvider";
 import './globals.css';
 
 export default function RootLayout() {
   return (
-    <Stack>
+    <AuthProvider>
+    <Stack initialRouteName="(auth)/Login">
       <Stack.Screen
         name="(tabs)"
         options={{ headerShown: false }}
@@ -41,6 +43,20 @@ export default function RootLayout() {
           title: "Report Found Item",
         }}
       />
+      <Stack.Screen
+    name="(auth)/Login"
+    options={{
+      title:"Login"
+    }}
+    />
+      <Stack.Screen
+    name="(auth)/Register"
+    options={{
+      title:"Register"
+    }}
+    />
     </Stack>
+    
+    </AuthProvider>
   );
 }
