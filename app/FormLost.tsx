@@ -11,11 +11,16 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const STORAGE_KEY = "@lost_reports_v1";
 
 export default function FormLost() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const category = (params?.category as string) || "other";
 
   const [itemName, setItemName] = useState("");
   const [locationLost, setLocationLost] = useState("");
@@ -52,7 +57,7 @@ export default function FormLost() {
           aspect: [4, 3],
           quality: 0.8,
         });
-        if (!result.canceled) {
+        if (!result.canceled && result.assets?.length) {
           setImageUri(result.assets[0].uri);
         }
       } else {
@@ -70,13 +75,27 @@ export default function FormLost() {
           aspect: [4, 3],
           quality: 0.8,
         });
-        if (!result.canceled) {
+        if (!result.canceled && result.assets?.length) {
           setImageUri(result.assets[0].uri);
         }
       }
     } catch (err) {
       console.log(err);
       Alert.alert("Error", "Could not open camera or gallery.");
+    }
+  };
+
+  // ---- Save report to AsyncStorage so Browse page can show a card ----
+  const saveReportToStorage = async (report: any) => {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const list = raw ? JSON.parse(raw) : [];
+      list.unshift(report); // newest first
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      return true;
+    } catch (err) {
+      console.error("Save error:", err);
+      return false;
     }
   };
 
@@ -88,16 +107,34 @@ export default function FormLost() {
 
     setLoading(true);
     try {
-      // fake api call
-      await new Promise((res) => setTimeout(res, 900));
+      const report = {
+        id: Date.now().toString(),
+        category: category.toLowerCase(),
+        title: itemName.trim(),
+        description: note.trim() || "",
+        location: locationLost.trim(),
+        lostDate: lostDate.trim() || "",
+        contactName: contactName.trim(),
+        contactPhone: contactPhone.trim(),
+        imageUri: imageUri || null,
+        createdAt: new Date().toISOString(),
+      };
 
+      const ok = await saveReportToStorage(report);
       setLoading(false);
+
+      if (!ok) {
+        Alert.alert("Error", "Could not save the report. Try again.");
+        return;
+      }
+
       Alert.alert(
         "Report submitted",
-        "Thank you — your lost-item report has been submitted.",
+        "Thank you — your lost-item report has been saved.",
         [{ text: "OK", onPress: () => router.back() }]
       );
 
+      // reset form (optional; router.back() will usually unmount)
       setItemName("");
       setLocationLost("");
       setLostDate("");
@@ -106,6 +143,7 @@ export default function FormLost() {
       setContactPhone("");
       setImageUri(null);
     } catch (e) {
+      console.error(e);
       setLoading(false);
       Alert.alert("Error", "Something went wrong. Please try again.");
     }
