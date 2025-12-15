@@ -23,11 +23,17 @@ export default function RootLayout() {
 <Stack.Screen
   name="ReportFoundItem"
   options={{
-    title: "Report Found Item", // <-- change text here
+    title: "Report Found Item", 
     headerShown: true,
     
   }}
 />
+<Stack.Screen
+        name="ReportDetail"
+        options={{
+          title: "Report Detail",
+        }}
+      />
 
       <Stack.Screen
         name="FormLost"

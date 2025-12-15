@@ -40,7 +40,7 @@ export default function FormLost() {
     contactName.trim().length >= 2 &&
     isValidPhone(contactPhone);
 
-  // ---- Image picking (camera / gallery) ----
+  
   const pickImage = async (source: "camera" | "library") => {
     try {
       if (source === "camera") {
@@ -85,12 +85,12 @@ export default function FormLost() {
     }
   };
 
-  // ---- Save report to AsyncStorage so Browse page can show a card ----
+  
   const saveReportToStorage = async (report: any) => {
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const list = raw ? JSON.parse(raw) : [];
-      list.unshift(report); // newest first
+      list.unshift(report); 
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
       return true;
     } catch (err) {
@@ -134,7 +134,7 @@ export default function FormLost() {
         [{ text: "OK", onPress: () => router.back() }]
       );
 
-      // reset form (optional; router.back() will usually unmount)
+      
       setItemName("");
       setLocationLost("");
       setLostDate("");
@@ -150,7 +150,7 @@ export default function FormLost() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white ">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
@@ -167,7 +167,7 @@ export default function FormLost() {
           </View>
 
           <View className="space-y-4">
-            {/* Item name */}
+            
             <View>
               <Text className="font-semibold mb-2">What is the item?</Text>
               <TextInput
@@ -178,7 +178,7 @@ export default function FormLost() {
               />
             </View>
 
-            {/* Photo section */}
+            
             <View>
               <Text className="font-semibold mb-2">
                 Photo of the item (optional)
@@ -225,7 +225,7 @@ export default function FormLost() {
               </View>
             </View>
 
-            {/* Location */}
+            
             <View>
               <Text className="font-semibold mb-2">Where did you lose it?</Text>
               <TextInput
@@ -236,7 +236,7 @@ export default function FormLost() {
               />
             </View>
 
-            {/* Date / time */}
+           
             <View>
               <Text className="font-semibold mb-2">
                 Date / Time Lost (optional)
@@ -249,7 +249,7 @@ export default function FormLost() {
               />
             </View>
 
-            {/* Note */}
+            
             <View>
               <Text className="font-semibold mb-2">Short Note (optional)</Text>
               <TextInput
@@ -262,7 +262,7 @@ export default function FormLost() {
 
             <View className="h-px bg-gray-200 my-4" />
 
-            {/* Contact name */}
+            
             <View>
               <Text className="font-semibold mb-2">Your Name</Text>
               <TextInput
