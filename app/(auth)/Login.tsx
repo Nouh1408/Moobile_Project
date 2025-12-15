@@ -18,49 +18,77 @@ export default function Login() {
     }
     const ok = await login(email.trim(), password);
     if (ok) {
-      // replace stack so user can't go back to login
       router.replace("/");
     } else {
-      Alert.alert("Login failed");
+      Alert.alert("Login failed", "Invalid email or password");
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 px-4 py-6 bg-white">
-      <Text className="text-2xl font-bold mb-4">Welcome back</Text>
-
-      <View className="mb-3">
-        <Text className="font-semibold mb-1">Email</Text>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="you@example.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          className="border border-gray-200 rounded-md p-3"
-        />
+    <SafeAreaView className="flex-1 bg-gray-50 px-5 justify-center">
+      
+      <View className="mb-10">
+        <Text className="text-3xl font-extrabold text-gray-900">
+          Welcome back
+        </Text>
+        <Text className="text-gray-500 mt-2">
+          Login to continue
+        </Text>
       </View>
 
-      <View className="mb-4">
-        <Text className="font-semibold mb-1">Password</Text>
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Password"
-          secureTextEntry
-          className="border border-gray-200 rounded-md p-3"
-        />
+      
+      <View className="bg-white rounded-2xl p-5 shadow-sm">
+        
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-gray-600 mb-1">
+            Email
+          </Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="email@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            className="border border-gray-200 rounded-xl px-4 py-3 text-base bg-gray-50"
+          />
+        </View>
+
+        
+        <View className="mb-6">
+          <Text className="text-sm font-medium text-gray-600 mb-1">
+            Password
+          </Text>
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            secureTextEntry
+            className="border border-gray-200 rounded-xl px-4 py-3 text-base bg-gray-50"
+          />
+        </View>
+
+        {/* Login Button */}
+        <Pressable
+          onPress={submit}
+          className="bg-blue-600 rounded-xl py-3 items-center active:opacity-80"
+        >
+          <Text className="text-white font-semibold text-base">
+            Login
+          </Text>
+        </Pressable>
       </View>
 
-      <Pressable onPress={submit} className="bg-blue-600 rounded-lg p-3 items-center">
-        <Text className="text-white font-semibold">Login</Text>
-      </Pressable>
-
+      {/* Register */}
       <Pressable
         onPress={() => router.push("/(auth)/Register")}
-        className="mt-3 items-center"
+        className="mt-6 items-center"
       >
-        <Text className="text-sm text-blue-600">Don't have an account? Register</Text>
+        <Text className="text-gray-500">
+          Don’t have an account?{" "}
+          <Text className="text-blue-600 font-semibold">
+            Register
+          </Text>
+        </Text>
       </Pressable>
     </SafeAreaView>
   );
