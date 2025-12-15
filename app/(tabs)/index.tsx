@@ -32,36 +32,38 @@ export default function Index() {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-white"
-      showsVerticalScrollIndicator={false}
-    >
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1 pt-6 px-4">
-        
-        <View className="flex-row justify-between items-center mb-8">
-          <View>
-            <Text className="text-sm text-gray-500">
-              Welcome back 
-            </Text>
-            <Text className="text-2xl font-bold text-gray-900">
-              Home
-            </Text>
-          </View>
-
-          <Pressable
-            onPress={confirmLogout}
-            className="p-2 rounded-full bg-gray-100"
-          >
-            <Ionicons
-              name="log-out-outline"
-              size={22}
-              color="#374151" 
-            />
-          </Pressable>
+      
+      <View className="px-4 pt-4 pb-3 flex-row justify-between items-center border-b border-gray-200">
+        <View>
+          <Text className="text-sm text-gray-500">
+            Welcome back
+          </Text>
+          <Text className="text-2xl font-bold text-gray-900">
+            Home
+          </Text>
         </View>
 
+        <Pressable
+          onPress={confirmLogout}
+          className="p-2 rounded-full bg-gray-100"
+        >
+          <Ionicons
+            name="log-out-outline"
+            size={22}
+            color="#374151"
+          />
+        </Pressable>
+      </View>
+
+      
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 24, paddingBottom: 40 }}
+      >
         
         <View className="w-full items-center mb-10">
           <Image
@@ -126,7 +128,8 @@ export default function Index() {
             bg="#e6eefa"
           />
         </View>
-      </SafeAreaView>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+ 
