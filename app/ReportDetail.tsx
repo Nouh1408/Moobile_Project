@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, ScrollView, Pressable, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  Pressable,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -27,18 +34,51 @@ export default function ReportDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
+    const loadReport = async () => {
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         const list: Report[] = raw ? JSON.parse(raw) : [];
-        setReport(list.find((r) => r.id === id) || null);
+        const found = list.find((r) => r.id === id) || null;
+        setReport(found);
       } catch (e) {
         Alert.alert("Error", "Could not load report.");
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    loadReport();
   }, [id]);
+
+  const deleteReport = async () => {
+    Alert.alert(
+      "Delete Report",
+      "Are you sure you want to delete this report?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const raw = await AsyncStorage.getItem(STORAGE_KEY);
+              const list: Report[] = raw ? JSON.parse(raw) : [];
+
+              const updated = list.filter((r) => r.id !== report?.id);
+              await AsyncStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(updated)
+              );
+
+              router.replace("/"); 
+            } catch (e) {
+              Alert.alert("Error", "Failed to delete report.");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   if (loading) {
     return (
@@ -50,8 +90,8 @@ export default function ReportDetail() {
 
   if (!report) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center px-4 bg-white">
-        <Text className="text-center text-gray-600">Report not found.</Text>
+      <SafeAreaView className="flex-1 items-center justify-center bg-white px-4">
+        <Text className="text-gray-600">Report not found.</Text>
         <Pressable
           onPress={() => router.back()}
           className="mt-4 bg-blue-600 px-4 py-2 rounded-lg"
@@ -64,7 +104,7 @@ export default function ReportDetail() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
-      {/* ================= HERO IMAGE ================= */}
+      
       <View className="w-full h-72 bg-slate-200">
         {report.imageUri ? (
           <Image
@@ -78,16 +118,24 @@ export default function ReportDetail() {
           </View>
         )}
 
-        {/* Back button overlay */}
+        
         <Pressable
           onPress={() => router.back()}
           className="absolute top-4 left-4 bg-black/50 px-3 py-2 rounded-full"
         >
           <Text className="text-white">Back</Text>
         </Pressable>
+
+        
+        <Pressable
+          onPress={deleteReport}
+          className="absolute top-4 right-4 bg-red-600/80 px-3 py-2 rounded-full"
+        >
+          <Text className="text-white font-semibold">Delete</Text>
+        </Pressable>
       </View>
 
-      {/* ================= CONTENT ================= */}
+      
       <ScrollView
         className="flex-1 -mt-6"
         contentContainerStyle={{ paddingBottom: 24 }}
@@ -103,9 +151,9 @@ export default function ReportDetail() {
             </Text>
           )}
 
-          {/* Description */}
+          
           <View className="mt-5">
-            <Text className="font-semibold mb-1 text-slate-900">
+            <Text className="font-semibold text-slate-900 mb-1">
               Description
             </Text>
             <Text className="text-sm text-slate-700">
@@ -113,10 +161,10 @@ export default function ReportDetail() {
             </Text>
           </View>
 
-          {/* Location */}
+          
           {report.location && (
             <View className="mt-4">
-              <Text className="font-semibold mb-1 text-slate-900">
+              <Text className="font-semibold text-slate-900 mb-1">
                 Location
               </Text>
               <Text className="text-sm text-slate-700">
@@ -125,9 +173,9 @@ export default function ReportDetail() {
             </View>
           )}
 
-          {/* Contact */}
+          
           <View className="mt-4">
-            <Text className="font-semibold mb-1 text-slate-900">
+            <Text className="font-semibold text-slate-900 mb-1">
               Contact
             </Text>
             <Text className="text-sm text-slate-700">
@@ -138,7 +186,7 @@ export default function ReportDetail() {
             </Text>
           </View>
 
-          {/* Actions */}
+          
           <View className="mt-8 flex-row gap-3">
             <Pressable
               onPress={() =>
