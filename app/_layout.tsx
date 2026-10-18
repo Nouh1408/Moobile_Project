@@ -50,17 +50,17 @@ export default function RootLayout() {
         }}
       />
       <Stack.Screen
-    name="(auth)/Login"
-    options={{
-      title:"Login"
-    }}
-    />
+        name="(auth)/Login"
+        options={{
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
-    name="(auth)/Register"
-    options={{
-      title:"Register"
-    }}
-    />
+        name="(auth)/Register"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
     
     </AuthProvider>
