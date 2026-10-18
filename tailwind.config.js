@@ -6,12 +6,24 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        smallText:'#667b99',
-        
+        flatDark: '#1A1A1A',
+        flatGray: '#4A4A4A',
+        flatMuted: '#71717A',
+        flatBorder: '#E4E4E7',
+        flatBg: '#FAFAFA',
+        flatBlue: '#0066FF',
+        flatRed: '#DC2626',
+        flatGreen: '#16A34A',
+        smallText: '#667b99',
       },
-      backgroundColor:{
-homeBG:"#fbfbfb"
-      }
+      borderRadius: {
+        'flat-sm': '2px',
+        'flat-md': '4px',
+        'flat-lg': '8px',
+      },
+      backgroundColor: {
+        homeBG: "#fbfbfb",
+      },
     },
   },
   plugins: [],
