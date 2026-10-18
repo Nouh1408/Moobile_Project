@@ -1,7 +1,6 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useIsFocused } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Image,
@@ -41,7 +40,6 @@ type Report = {
 
 const Browse = () => {
   const router = useRouter();
-  const isFocused = useIsFocused();
   const { token, loading: authLoading } = useAuth(); // <-- authentication state
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,9 +67,11 @@ const Browse = () => {
     }
   }, [authLoading, token, router]);
 
-  useEffect(() => {
-    if (isFocused) loadItems();
-  }, [isFocused, loadItems]);
+  useFocusEffect(
+    useCallback(() => {
+      loadItems();
+    }, [loadItems])
+  );
 
   // Improved normalization:
   // 1) try explicit category field (map to a key)
