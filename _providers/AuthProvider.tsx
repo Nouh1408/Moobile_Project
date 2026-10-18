@@ -9,8 +9,9 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string) => Promise<boolean>;
+  login: (identifier: string, password: string, isPhone?: boolean) => Promise<boolean>;
+  register: (identifier: string, password: string, isPhone?: boolean) => Promise<boolean>;
+  resetPassword: (email: string) => Promise<boolean>;
   logout: () => Promise<void>;
 };
 
@@ -43,12 +44,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (
+    identifier: string,
+    password: string,
+    isPhone: boolean = false
+  ): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      const cleanId = identifier.trim();
+      const credentials = isPhone
+        ? { phone: cleanId, password }
+        : { email: cleanId, password };
+
+      const { data, error } = await supabase.auth.signInWithPassword(credentials as any);
 
       if (error) {
         Alert.alert("Login Failed", error.message);
@@ -64,12 +71,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string): Promise<boolean> => {
+  const register = async (
+    identifier: string,
+    password: string,
+    isPhone: boolean = false
+  ): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-      });
+      const cleanId = identifier.trim();
+      const credentials = isPhone
+        ? { phone: cleanId, password }
+        : { email: cleanId, password };
+
+      const { data, error } = await supabase.auth.signUp(credentials as any);
 
       if (error) {
         Alert.alert("Registration Failed", error.message);
@@ -82,14 +95,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(data.user);
       } else {
         Alert.alert(
-          "Check your email",
-          "A verification link has been sent to your email to activate your account."
+          isPhone ? "Verification Sent" : "Check your email",
+          isPhone
+            ? "A verification code has been sent to your phone number."
+            : "A verification link has been sent to your email to activate your account."
         );
       }
 
       return true;
     } catch (err: any) {
       Alert.alert("Registration Error", err?.message || "Failed to register.");
+      return false;
+    }
+  };
+
+  const resetPassword = async (email: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      if (error) {
+        Alert.alert("Reset Failed", error.message);
+        return false;
+      }
+      Alert.alert("Reset Link Sent", "Check your email inbox for password recovery instructions.");
+      return true;
+    } catch (err: any) {
+      Alert.alert("Reset Error", err?.message || "Failed to send reset email.");
       return false;
     }
   };
@@ -113,6 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         login,
         register,
+        resetPassword,
         logout,
       }}
     >
