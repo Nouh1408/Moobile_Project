@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
 
 export default function Layout() {
   return (
@@ -7,24 +8,25 @@ export default function Layout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: "#0CA5A0",    
-        tabBarInactiveTintColor: "#94A3B8",  
+        tabBarActiveTintColor: "#0066FF",
+        tabBarInactiveTintColor: "#71717A",
         tabBarStyle: {
-          height: 62,
-          paddingBottom: 10,
-          marginBottom:0,
-          paddingTop: 6,
-          backgroundColor: "#ffffff",
-          borderTopLeftRadius: 22,
-          borderTopRightRadius: 22,
-          borderTopWidth: 0,
-          elevation: 3,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+          backgroundColor: "#FFFFFF",
+          borderTopWidth: 1,
+          borderTopColor: "#E4E4E7",
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600",
-          
-          
+          fontSize: 11,
+          fontWeight: "700",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
         },
       }}
     >
@@ -32,8 +34,12 @@ export default function Layout() {
         name="index"
         options={{
           tabBarLabel: "Home",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="home-outline" size={23} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
@@ -42,8 +48,12 @@ export default function Layout() {
         name="Browse"
         options={{
           tabBarLabel: "Browse",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="search-outline" size={23} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "search" : "search-outline"}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
