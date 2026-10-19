@@ -113,3 +113,49 @@ export async function deleteReport(
     return { success: false, error: err?.message || "Failed to delete report" };
   }
 }
+
+/**
+ * Fetch all reports submitted by a specific user
+ */
+export async function fetchUserReports(
+  userId: string
+): Promise<ReportItem[]> {
+  try {
+    const { data, error } = await supabase
+      .from("reports")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("fetchUserReports error:", error.message);
+      return [];
+    }
+    return (data as ReportItem[]) || [];
+  } catch (err) {
+    console.warn("fetchUserReports error:", err);
+    return [];
+  }
+}
+
+/**
+ * Update the status of a report (e.g. 'open' vs 'returned')
+ */
+export async function updateReportStatus(
+  id: string,
+  status: "open" | "returned" | string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from("reports")
+      .update({ status })
+      .eq("id", id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Failed to update report status" };
+  }
+}
