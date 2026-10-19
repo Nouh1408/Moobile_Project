@@ -1,6 +1,9 @@
+// app/FormLost.tsx
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,48 +11,63 @@ import {
   Text,
   TextInput,
   View,
-  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const STORAGE_KEY = "@lost_reports_v1";
 
+const categoryOptions = [
+  { key: "devices", label: "Devices", icon: "phone-portrait-outline" as const },
+  { key: "money", label: "Wallets", icon: "wallet-outline" as const },
+  { key: "id", label: "IDs/Keys", icon: "card-outline" as const },
+  { key: "other", label: "Other", icon: "cube-outline" as const },
+];
+
+const campusLocationPresets = [
+  "Main Library",
+  "Engineering Hall",
+  "Student Center",
+  "Food Court",
+  "Sports Complex",
+  "Lecture Hall A",
+];
+
 export default function FormLost() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const category = (params?.category as string) || "other";
+  const initialCategory = (params?.category as string) || "devices";
 
+  const [category, setCategory] = useState<string>(initialCategory);
   const [itemName, setItemName] = useState("");
   const [locationLost, setLocationLost] = useState("");
   const [lostDate, setLostDate] = useState("");
   const [note, setNote] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
-  const [loading, setLoading] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const isValidPhone = (s: string) =>
     s.trim().length >= 7 && /^[0-9+\-\s()]+$/.test(s.trim());
 
   const canSubmit =
-    itemName.trim().length >= 1 &&
+    itemName.trim().length >= 2 &&
     locationLost.trim().length >= 2 &&
     contactName.trim().length >= 2 &&
     isValidPhone(contactPhone);
 
-  
   const pickImage = async (source: "camera" | "library") => {
     try {
       if (source === "camera") {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert(
-            "Camera Permission",
-            "Camera access is required to take a photo."
-          );
+          Alert.alert("Permission", "Camera permission is required.");
           return;
         }
         const result = await ImagePicker.launchCameraAsync({
@@ -61,13 +79,9 @@ export default function FormLost() {
           setImageUri(result.assets[0].uri);
         }
       } else {
-        const { status } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert(
-            "Photos Permission",
-            "Photo library access is required to choose a picture."
-          );
+          Alert.alert("Permission", "Photo library permission is required.");
           return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -79,29 +93,14 @@ export default function FormLost() {
           setImageUri(result.assets[0].uri);
         }
       }
-    } catch (err) {
-      console.log(err);
-      Alert.alert("Error", "Could not open camera or gallery.");
-    }
-  };
-
-  
-  const saveReportToStorage = async (report: any) => {
-    try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const list = raw ? JSON.parse(raw) : [];
-      list.unshift(report); 
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-      return true;
-    } catch (err) {
-      console.error("Save error:", err);
-      return false;
+    } catch {
+      Alert.alert("Error", "Could not access image picker.");
     }
   };
 
   const onSubmit = async () => {
     if (!canSubmit) {
-      Alert.alert("Incomplete", "Please fill all required fields correctly.");
+      Alert.alert("Incomplete", "Please fill in all required fields marked with *.");
       return;
     }
 
@@ -109,210 +108,365 @@ export default function FormLost() {
     try {
       const report = {
         id: Date.now().toString(),
+        type: "lost",
         category: category.toLowerCase(),
         title: itemName.trim(),
-        description: note.trim() || "",
+        description: note.trim() || "No additional description provided.",
         location: locationLost.trim(),
-        lostDate: lostDate.trim() || "",
+        lostDate: lostDate.trim() || new Date().toLocaleDateString(),
         contactName: contactName.trim(),
         contactPhone: contactPhone.trim(),
         imageUri: imageUri || null,
         createdAt: new Date().toISOString(),
       };
 
-      const ok = await saveReportToStorage(report);
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const list = raw ? JSON.parse(raw) : [];
+      list.unshift(report);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+
       setLoading(false);
-
-      if (!ok) {
-        Alert.alert("Error", "Could not save the report. Try again.");
-        return;
-      }
-
       Alert.alert(
-        "Report submitted",
-        "Thank you — your lost-item report has been saved.",
-        [{ text: "OK", onPress: () => router.back() }]
+        "Report Published",
+        "Your lost item report has been added to the campus directory.",
+        [
+          {
+            text: "View Feed",
+            onPress: () => router.replace("/(tabs)/Browse"),
+          },
+        ]
       );
-
-      
-      setItemName("");
-      setLocationLost("");
-      setLostDate("");
-      setNote("");
-      setContactName("");
-      setContactPhone("");
-      setImageUri(null);
-    } catch (e) {
-      console.error(e);
+    } catch {
       setLoading(false);
-      Alert.alert("Error", "Something went wrong. Please try again.");
+      Alert.alert("Error", "Could not save the report. Please try again.");
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white ">
+    <SafeAreaView className="flex-1 bg-[#FAFAFA]" edges={["top", "bottom"]}>
+      <StatusBar style="dark" />
+
+      {/* ================= FLAT TOP BAR ================= */}
+      <View className="px-5 py-3.5 bg-white border-b border-[#E4E4E7] flex-row items-center justify-between">
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={8}
+          className="w-9 h-9 border border-[#E4E4E7] rounded-[2px] bg-[#FAFAFA] items-center justify-center active:bg-[#E4E4E7]"
+        >
+          <Ionicons name="arrow-back" size={18} color="#1A1A1A" />
+        </Pressable>
+
+        <View className="items-center">
+          <Text className="text-[10px] font-bold text-[#DC2626] uppercase tracking-wider">
+            CAMPUS RECOVERY
+          </Text>
+          <Text className="text-sm font-bold text-[#1A1A1A]">
+            Report Lost Item
+          </Text>
+        </View>
+
+        <View className="w-9" />
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+          className="flex-1"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 }}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="mb-4">
-            <Text className="text-2xl font-bold">Report Lost Item</Text>
-            <Text className="text-sm text-slate-500 mt-1">
-              Tell us what you lost, where, and how we can contact you.
+          {/* Category Chip Selector */}
+          <View className="mb-5">
+            <Text className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-2">
+              Item Category
             </Text>
+            <View className="flex-row gap-2">
+              {categoryOptions.map((opt) => {
+                const isSelected = category.toLowerCase() === opt.key;
+                return (
+                  <Pressable
+                    key={opt.key}
+                    onPress={() => setCategory(opt.key)}
+                    className={`flex-1 py-2 rounded-[2px] border items-center justify-center ${
+                      isSelected
+                        ? "bg-[#1A1A1A] border-[#1A1A1A]"
+                        : "bg-white border-[#E4E4E7]"
+                    }`}
+                  >
+                    <Ionicons
+                      name={opt.icon}
+                      size={15}
+                      color={isSelected ? "#FFFFFF" : "#71717A"}
+                    />
+                    <Text
+                      className={`text-[10px] font-bold uppercase tracking-wider mt-1 ${
+                        isSelected ? "text-white" : "text-[#4A4A4A]"
+                      }`}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
 
-          <View className="space-y-4">
-            
-            <View>
-              <Text className="font-semibold mb-2">What is the item?</Text>
-              <TextInput
-                value={itemName}
-                onChangeText={setItemName}
-                placeholder="e.g., Black iPhone, Red Wallet"
-                className="border border-gray-300 rounded-md p-3 text-base bg-white"
-              />
+          {/* Form Card */}
+          <View className="bg-white border border-[#E4E4E7] rounded-[2px] p-5 mb-5">
+            {/* Title */}
+            <View className="mb-4">
+              <Text className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1.5">
+                Item Title *
+              </Text>
+              <View
+                className={`bg-white border rounded-[2px] px-3.5 py-3 ${
+                  focusedField === "title"
+                    ? "border-[#0066FF] border-[2px]"
+                    : "border-[#E4E4E7]"
+                }`}
+              >
+                <TextInput
+                  value={itemName}
+                  onChangeText={setItemName}
+                  onFocus={() => setFocusedField("title")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="e.g. Blue Dell XPS 15 Laptop"
+                  placeholderTextColor="#A1A1AA"
+                  className="text-xs text-[#1A1A1A]"
+                />
+              </View>
             </View>
 
-            
-            <View>
-              <Text className="font-semibold mb-2">
-                Photo of the item (optional)
+            {/* Location */}
+            <View className="mb-4">
+              <Text className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1.5">
+                Last Seen Campus Location *
+              </Text>
+
+              {/* Quick preset chips */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 6, marginBottom: 8 }}
+              >
+                {campusLocationPresets.map((loc) => (
+                  <Pressable
+                    key={loc}
+                    onPress={() => setLocationLost(loc)}
+                    className={`px-2.5 py-1 rounded-[2px] border ${
+                      locationLost === loc
+                        ? "bg-[#0066FF] border-[#0066FF]"
+                        : "bg-[#F4F5F7] border-[#E4E4E7]"
+                    }`}
+                  >
+                    <Text
+                      className={`text-[10px] font-bold ${
+                        locationLost === loc ? "text-white" : "text-[#4A4A4A]"
+                      }`}
+                    >
+                      {loc}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+
+              <View
+                className={`flex-row items-center bg-white border rounded-[2px] px-3.5 py-3 ${
+                  focusedField === "location"
+                    ? "border-[#0066FF] border-[2px]"
+                    : "border-[#E4E4E7]"
+                }`}
+              >
+                <Ionicons name="location-outline" size={16} color="#71717A" />
+                <TextInput
+                  value={locationLost}
+                  onChangeText={setLocationLost}
+                  onFocus={() => setFocusedField("location")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="e.g. 2nd Floor Study Room, Desk 14"
+                  placeholderTextColor="#A1A1AA"
+                  className="flex-1 ml-2 text-xs text-[#1A1A1A]"
+                />
+              </View>
+            </View>
+
+            {/* Date */}
+            <View className="mb-4">
+              <Text className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1.5">
+                Date / Time Lost
+              </Text>
+              <View
+                className={`flex-row items-center bg-white border rounded-[2px] px-3.5 py-3 ${
+                  focusedField === "date"
+                    ? "border-[#0066FF] border-[2px]"
+                    : "border-[#E4E4E7]"
+                }`}
+              >
+                <Ionicons name="calendar-outline" size={16} color="#71717A" />
+                <TextInput
+                  value={lostDate}
+                  onChangeText={setLostDate}
+                  onFocus={() => setFocusedField("date")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="e.g. Today around 11:30 AM"
+                  placeholderTextColor="#A1A1AA"
+                  className="flex-1 ml-2 text-xs text-[#1A1A1A]"
+                />
+              </View>
+            </View>
+
+            {/* Description */}
+            <View className="mb-4">
+              <Text className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1.5">
+                Identifying Description
+              </Text>
+              <View
+                className={`bg-white border rounded-[2px] p-3 ${
+                  focusedField === "note"
+                    ? "border-[#0066FF] border-[2px]"
+                    : "border-[#E4E4E7]"
+                }`}
+              >
+                <TextInput
+                  value={note}
+                  onChangeText={setNote}
+                  onFocus={() => setFocusedField("note")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="Include identifying marks (stickers, scratches, brand, color)..."
+                  placeholderTextColor="#A1A1AA"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  className="text-xs text-[#1A1A1A] min-h-[70px]"
+                />
+              </View>
+            </View>
+
+            {/* Photo Section */}
+            <View className="mb-2">
+              <Text className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1.5">
+                Item Photo (Optional)
               </Text>
 
               {imageUri ? (
-                <View className="flex-row items-center mb-3">
+                <View className="relative border border-[#E4E4E7] rounded-[2px] overflow-hidden mb-3">
                   <Image
                     source={{ uri: imageUri }}
-                    className="w-20 h-20 rounded-md mr-3"
+                    className="w-full h-44"
+                    resizeMode="cover"
                   />
                   <Pressable
                     onPress={() => setImageUri(null)}
-                    className="px-3 py-2 rounded-md bg-red-100"
+                    className="absolute top-2 right-2 bg-[#DC2626] px-2 py-1 rounded-[2px] flex-row items-center"
                   >
-                    <Text className="text-xs font-semibold text-red-600">
-                      Remove photo
+                    <Ionicons name="trash-outline" size={13} color="#FFFFFF" />
+                    <Text className="text-white text-[10px] font-bold ml-1 uppercase">
+                      Remove
                     </Text>
                   </Pressable>
                 </View>
-              ) : (
-                <Text className="text-xs text-slate-500 mb-2">
-                  Adding a photo helps others recognize your item faster.
-                </Text>
-              )}
+              ) : null}
 
               <View className="flex-row gap-2">
                 <Pressable
                   onPress={() => pickImage("camera")}
-                  className="flex-1 rounded-md bg-blue-600 p-3 items-center"
+                  className="flex-1 border border-[#1A1A1A] bg-white py-2.5 rounded-[2px] flex-row items-center justify-center active:bg-[#F4F5F7]"
                 >
-                  <Text className="text-white font-semibold text-sm">
-                    Take a photo
+                  <Ionicons name="camera-outline" size={16} color="#1A1A1A" />
+                  <Text className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider ml-1.5">
+                    Take Photo
                   </Text>
                 </Pressable>
+
                 <Pressable
                   onPress={() => pickImage("library")}
-                  className="flex-1 rounded-md bg-slate-100 p-3 items-center"
+                  className="flex-1 border border-[#E4E4E7] bg-[#FAFAFA] py-2.5 rounded-[2px] flex-row items-center justify-center active:bg-[#E4E4E7]"
                 >
-                  <Text className="text-slate-800 font-semibold text-sm">
-                    Choose from gallery
+                  <Ionicons name="images-outline" size={16} color="#4A4A4A" />
+                  <Text className="text-xs font-bold text-[#4A4A4A] uppercase tracking-wider ml-1.5">
+                    Gallery
                   </Text>
                 </Pressable>
               </View>
             </View>
+          </View>
 
-            
-            <View>
-              <Text className="font-semibold mb-2">Where did you lose it?</Text>
-              <TextInput
-                value={locationLost}
-                onChangeText={setLocationLost}
-                placeholder="e.g., Cairo Mall, Metro station, Gate 2"
-                className="border border-gray-300 rounded-md p-3 text-base bg-white"
-              />
-            </View>
+          {/* Contact Details Card */}
+          <View className="bg-white border border-[#E4E4E7] rounded-[2px] p-5 mb-5">
+            <Text className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-3">
+              Reporter Contact Information
+            </Text>
 
-           
-            <View>
-              <Text className="font-semibold mb-2">
-                Date / Time Lost (optional)
+            <View className="mb-4">
+              <Text className="text-[11px] font-bold text-[#71717A] uppercase tracking-wider mb-1.5">
+                Full Name *
               </Text>
-              <TextInput
-                value={lostDate}
-                onChangeText={setLostDate}
-                placeholder="e.g., 2025-11-28 14:30 or Yesterday evening"
-                className="border border-gray-300 rounded-md p-3 text-base bg-white"
-              />
-            </View>
-
-            
-            <View>
-              <Text className="font-semibold mb-2">Short Note (optional)</Text>
-              <TextInput
-                value={note}
-                onChangeText={setNote}
-                placeholder="Any quick note (e.g., left on the bench)"
-                className="border border-gray-300 rounded-md p-3 text-base bg-white"
-              />
-            </View>
-
-            <View className="h-px bg-gray-200 my-4" />
-
-            
-            <View>
-              <Text className="font-semibold mb-2">Your Name</Text>
-              <TextInput
-                value={contactName}
-                onChangeText={setContactName}
-                placeholder="Your full name"
-                className="border border-gray-300 rounded-md p-3 text-base bg-white"
-              />
-            </View>
-
-            {/* Contact phone */}
-            <View>
-              <Text className="font-semibold mb-2">Contact Phone</Text>
-              <TextInput
-                value={contactPhone}
-                onChangeText={setContactPhone}
-                placeholder="Phone or WhatsApp number"
-                keyboardType="phone-pad"
-                className="border border-gray-300 rounded-md p-3 text-base bg-white"
-              />
-              {!isValidPhone(contactPhone) && contactPhone.length > 0 && (
-                <Text className="text-xs text-red-500 mt-1">
-                  Please enter a valid phone number.
-                </Text>
-              )}
-            </View>
-
-            {/* Actions */}
-            <View className="mt-6">
-              <Pressable
-                onPress={onSubmit}
-                disabled={!canSubmit || loading}
-                className={`rounded-lg p-4 items-center ${
-                  canSubmit && !loading ? "bg-green-600" : "bg-green-200"
+              <View
+                className={`bg-white border rounded-[2px] px-3.5 py-3 ${
+                  focusedField === "name"
+                    ? "border-[#0066FF] border-[2px]"
+                    : "border-[#E4E4E7]"
                 }`}
-                style={{ opacity: loading ? 0.9 : 1 }}
               >
-                <Text className="text-white font-semibold">
-                  {loading ? "Submitting..." : "Submit Report"}
-                </Text>
-              </Pressable>
+                <TextInput
+                  value={contactName}
+                  onChangeText={setContactName}
+                  onFocus={() => setFocusedField("name")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="Your full name"
+                  placeholderTextColor="#A1A1AA"
+                  className="text-xs text-[#1A1A1A]"
+                />
+              </View>
+            </View>
 
-              <Pressable
-                onPress={() => router.back()}
-                className="mt-3 rounded-lg p-3 items-center border border-gray-200"
+            <View className="mb-2">
+              <Text className="text-[11px] font-bold text-[#71717A] uppercase tracking-wider mb-1.5">
+                Contact Phone / WhatsApp *
+              </Text>
+              <View
+                className={`bg-white border rounded-[2px] px-3.5 py-3 ${
+                  focusedField === "phone"
+                    ? "border-[#0066FF] border-[2px]"
+                    : "border-[#E4E4E7]"
+                }`}
               >
-                <Text className="text-gray-700">Cancel</Text>
-              </Pressable>
+                <TextInput
+                  value={contactPhone}
+                  onChangeText={setContactPhone}
+                  onFocus={() => setFocusedField("phone")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="e.g. +201012345678"
+                  placeholderTextColor="#A1A1AA"
+                  keyboardType="phone-pad"
+                  className="text-xs text-[#1A1A1A]"
+                />
+              </View>
             </View>
           </View>
+
+          {/* Submit Action */}
+          <Pressable
+            onPress={onSubmit}
+            disabled={loading}
+            className={`py-3.5 rounded-[2px] flex-row items-center justify-center ${
+              canSubmit ? "bg-[#0066FF] active:bg-[#0052CC]" : "bg-[#A1A1AA]"
+            }`}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
+                <Text className="text-white text-xs font-bold uppercase tracking-wider ml-2">
+                  Publish Lost Item Report
+                </Text>
+              </>
+            )}
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

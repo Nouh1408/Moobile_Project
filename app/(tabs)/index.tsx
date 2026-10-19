@@ -74,7 +74,7 @@ export default function Index() {
 
   // Derive display name from email or user identity
   const userIdentifier = user?.email
-    ? user.email.split("@")[0]
+    ? user.email.split("@")[0].replace(/\d+/g, "")
     : user?.phone || "Campus Member";
 
   return (

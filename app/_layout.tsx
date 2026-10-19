@@ -1,68 +1,27 @@
-
 import { Stack } from "expo-router";
 import { AuthProvider } from "../_providers/AuthProvider";
-import './globals.css';
+import "./globals.css";
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-    <Stack initialRouteName="(auth)/Login">
-      <Stack.Screen
-        name="(tabs)"
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-  name="ReportLostItem"
-  options={{
-    title: "Report Lost Item", // <-- change text here
-    headerShown: true,
-    
-  }}
-/>
-<Stack.Screen
-  name="ReportFoundItem"
-  options={{
-    title: "Report Found Item", 
-    headerShown: true,
-    
-  }}
-/>
-<Stack.Screen
-        name="ReportDetail"
-        options={{
-          title: "Report Detail",
-        }}
-      />
-
-      <Stack.Screen
-        name="FormLost"
-        options={{
-          title: "Report Lost Item",
-          
-        }}
-      />
-
-      <Stack.Screen
-        name="FormFound"
-        options={{
-          title: "Report Found Item",
-        }}
-      />
-      <Stack.Screen
-        name="(auth)/Login"
-        options={{
+      <Stack
+        initialRouteName="(auth)/Login"
+        screenOptions={{
           headerShown: false,
+          animation: "fade",
         }}
-      />
-      <Stack.Screen
-        name="(auth)/Register"
-        options={{
-          headerShown: false,
-        }}
-      />
-    </Stack>
-    
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="ReportLostItem" options={{ headerShown: false }} />
+        <Stack.Screen name="ReportFoundItem" options={{ headerShown: false }} />
+        <Stack.Screen name="ReportDetail" options={{ headerShown: false }} />
+        <Stack.Screen name="FormLost" options={{ headerShown: false }} />
+        <Stack.Screen name="FormFound" options={{ headerShown: false }} />
+        <Stack.Screen name="Chat" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)/Login" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)/Register" options={{ headerShown: false }} />
+      </Stack>
     </AuthProvider>
   );
 }
