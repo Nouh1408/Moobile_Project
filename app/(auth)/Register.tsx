@@ -20,8 +20,14 @@ import { useAuth } from "../../_providers/AuthProvider";
 import { image } from "@/constants/images";
 
 export default function Register() {
-  const { register } = useAuth();
+  const { register, session, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  React.useEffect(() => {
+    if (!authLoading && session) {
+      router.replace("/(tabs)");
+    }
+  }, [session, authLoading, router]);
 
   // Tab state
   const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
