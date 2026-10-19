@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -17,7 +16,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../_providers/AuthProvider";
-import { image } from "@/constants/images";
 
 export default function Register() {
   const { register, session, loading: authLoading } = useAuth();
@@ -135,23 +133,32 @@ export default function Register() {
             <View className="w-9" />
           </View>
 
-          {/* ================= SHARP FLAT BANNER ================= */}
-          <View className="h-32 w-full bg-[#1A1A1A] border-b border-[#E4E4E7] relative justify-end p-4">
-            <Image
-              source={image.lost2}
-              className="absolute inset-0 w-full h-full opacity-35"
-              resizeMode="cover"
-            />
-            <View className="flex-row items-center justify-between">
+          {/* ================= PURE FLAT GEOMETRIC HEADER ================= */}
+          <View className="bg-[#1A1A1A] border-b border-[#2D2D2D] px-5 pt-6 pb-6">
+            <View className="flex-row items-center justify-between mb-4">
               <View className="bg-[#0066FF] px-2.5 py-1 rounded-[2px]">
-                <Text className="text-white text-[11px] font-bold tracking-wider uppercase">
+                <Text className="text-white text-[10px] font-bold tracking-wider uppercase">
                   NEW MEMBER ACCOUNT
                 </Text>
               </View>
-              <View className="flex-row items-center bg-[#1A1A1A]/80 px-2 py-1 rounded-[2px] border border-[#333333]">
-                <Ionicons name="school-outline" size={14} color="#0066FF" />
-                <Text className="text-white text-[11px] font-medium ml-1.5">
+              <View className="flex-row items-center bg-[#262626] px-2 py-1 rounded-[2px] border border-[#333333]">
+                <Ionicons name="school" size={13} color="#0066FF" />
+                <Text className="text-[#A1A1AA] text-[10px] font-semibold ml-1.5 uppercase tracking-wider">
                   Campus Verified
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row items-center">
+              <View className="w-11 h-11 bg-[#0066FF] rounded-[2px] items-center justify-center mr-3.5">
+                <Ionicons name="person-add" size={22} color="#FFFFFF" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-bold text-white tracking-tight">
+                  Join Campus Recovery
+                </Text>
+                <Text className="text-xs text-[#A1A1AA] mt-0.5">
+                  Connect with students & staff to return belongings
                 </Text>
               </View>
             </View>
