@@ -13,35 +13,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../../_providers/AuthProvider";
-import { image } from "@/constants/images";
+import { fetchReports, ReportItem } from "@/lib/reports";
 import HIW from "@/components/HIW";
-
-const STORAGE_KEY = "@lost_reports_v1";
-
-type Report = {
-  id: string;
-  category?: string | null;
-  title: string;
-  description: string;
-  location?: string;
-  contactName: string;
-  contactPhone: string;
-  imageUri?: string | null;
-  createdAt: string;
-};
 
 export default function Index() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [recentItems, setRecentItems] = useState<Report[]>([]);
+  const [recentItems, setRecentItems] = useState<ReportItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadRecentItems = useCallback(async () => {
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const list: Report[] = raw ? JSON.parse(raw) : [];
+      const list = await fetchReports();
       // Take up to 3 most recent items
       setRecentItems(list.slice(0, 3));
     } catch {
@@ -134,22 +118,36 @@ export default function Index() {
           </View>
         </Pressable>
 
-        {/* ================= HERO FLAT BANNER ================= */}
+        {/* ================= HERO FLAT GEOMETRIC BANNER ================= */}
         <View className="border border-[#E4E4E7] bg-white rounded-[2px] overflow-hidden mb-5">
-          <View className="h-32 w-full bg-[#1A1A1A] relative justify-end p-4">
-            <Image
-              source={image.hero}
-              className="absolute inset-0 w-full h-full opacity-40"
-              resizeMode="cover"
-            />
-            <View className="bg-[#0066FF] px-2 py-0.5 rounded-[2px] self-start mb-1">
-              <Text className="text-white text-[10px] font-bold uppercase tracking-wider">
-                Official Directory
-              </Text>
+          <View className="bg-[#1A1A1A] p-4 border-b border-[#2D2D2D]">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="bg-[#0066FF] px-2 py-0.5 rounded-[2px]">
+                <Text className="text-white text-[10px] font-bold uppercase tracking-wider">
+                  Official Directory
+                </Text>
+              </View>
+              <View className="flex-row items-center bg-[#262626] px-2 py-0.5 rounded-[2px] border border-[#3D3D3D]">
+                <Ionicons name="sparkles" size={11} color="#0066FF" />
+                <Text className="text-[#A1A1AA] text-[10px] font-semibold ml-1 uppercase tracking-wider">
+                  Live Network
+                </Text>
+              </View>
             </View>
-            <Text className="text-base font-bold text-white tracking-tight">
-              Report & Recover in Minutes
-            </Text>
+
+            <View className="flex-row items-center">
+              <View className="w-10 h-10 bg-[#0066FF] rounded-[2px] items-center justify-center mr-3">
+                <Ionicons name="search" size={20} color="#FFFFFF" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-bold text-white tracking-tight">
+                  Report & Recover in Minutes
+                </Text>
+                <Text className="text-[11px] text-[#A1A1AA] mt-0.5">
+                  Direct student & campus security matching
+                </Text>
+              </View>
+            </View>
           </View>
           <View className="p-3.5 bg-white">
             <Text className="text-xs text-[#4A4A4A] leading-5">
@@ -276,9 +274,9 @@ export default function Index() {
                   }
                   className="bg-white border border-[#E4E4E7] rounded-[2px] p-3 flex-row items-center active:bg-[#F4F5F7]"
                 >
-                  {item.imageUri ? (
+                  {item.image_url || item.imageUri ? (
                     <Image
-                      source={{ uri: item.imageUri }}
+                      source={{ uri: (item.image_url || item.imageUri)! }}
                       className="w-12 h-12 rounded-[2px] mr-3 border border-[#E4E4E7]"
                     />
                   ) : (

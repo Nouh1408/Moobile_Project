@@ -17,9 +17,8 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const STORAGE_KEY = "@lost_reports_v1";
+import { useAuth } from "../_providers/AuthProvider";
+import { createReport } from "@/lib/reports";
 
 const categoryOptions = [
   { key: "devices", label: "Devices", icon: "phone-portrait-outline" as const },
@@ -39,6 +38,7 @@ const campusLocationPresets = [
 
 export default function FormLost() {
   const router = useRouter();
+  const { user } = useAuth();
   const params = useLocalSearchParams();
   const initialCategory = (params?.category as string) || "devices";
 
@@ -64,19 +64,26 @@ export default function FormLost() {
 
   const pickImage = async (source: "camera" | "library") => {
     try {
+      const options: ImagePicker.ImagePickerOptions = {
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.6,
+        base64: true,
+      };
+
       if (source === "camera") {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== "granted") {
           Alert.alert("Permission", "Camera permission is required.");
           return;
         }
-        const result = await ImagePicker.launchCameraAsync({
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 0.8,
-        });
+        const result = await ImagePicker.launchCameraAsync(options);
         if (!result.canceled && result.assets?.length) {
-          setImageUri(result.assets[0].uri);
+          const asset = result.assets[0];
+          const uri = asset.base64
+            ? `data:image/jpeg;base64,${asset.base64}`
+            : asset.uri;
+          setImageUri(uri);
         }
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -84,13 +91,13 @@ export default function FormLost() {
           Alert.alert("Permission", "Photo library permission is required.");
           return;
         }
-        const result = await ImagePicker.launchImageLibraryAsync({
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 0.8,
-        });
+        const result = await ImagePicker.launchImageLibraryAsync(options);
         if (!result.canceled && result.assets?.length) {
-          setImageUri(result.assets[0].uri);
+          const asset = result.assets[0];
+          const uri = asset.base64
+            ? `data:image/jpeg;base64,${asset.base64}`
+            : asset.uri;
+          setImageUri(uri);
         }
       }
     } catch {
@@ -105,41 +112,41 @@ export default function FormLost() {
     }
 
     setLoading(true);
-    try {
-      const report = {
-        id: Date.now().toString(),
-        type: "lost",
-        category: category.toLowerCase(),
-        title: itemName.trim(),
-        description: note.trim() || "No additional description provided.",
-        location: locationLost.trim(),
-        lostDate: lostDate.trim() || new Date().toLocaleDateString(),
-        contactName: contactName.trim(),
-        contactPhone: contactPhone.trim(),
-        imageUri: imageUri || null,
-        createdAt: new Date().toISOString(),
-      };
+    const result = await createReport({
+      user_id: user?.id || null,
+      type: "lost",
+      category: category.toLowerCase(),
+      title: itemName.trim(),
+      description: note.trim()
+        ? `${note.trim()}${lostDate ? ` • Lost: ${lostDate.trim()}` : ""}`
+        : (lostDate ? `Lost: ${lostDate.trim()}` : "No additional description provided."),
+      location: locationLost.trim(),
+      contact_name: contactName.trim(),
+      contact_phone: contactPhone.trim(),
+      image_url: imageUri || null,
+      status: "open",
+    });
 
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const list = raw ? JSON.parse(raw) : [];
-      list.unshift(report);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    setLoading(false);
 
-      setLoading(false);
+    if (!result.success) {
       Alert.alert(
-        "Report Published",
-        "Your lost item report has been added to the campus directory.",
-        [
-          {
-            text: "View Feed",
-            onPress: () => router.replace("/(tabs)/Browse"),
-          },
-        ]
+        "Submission Failed",
+        result.error || "Could not publish report to Supabase."
       );
-    } catch {
-      setLoading(false);
-      Alert.alert("Error", "Could not save the report. Please try again.");
+      return;
     }
+
+    Alert.alert(
+      "Report Published",
+      "Your lost item report has been saved to the campus directory.",
+      [
+        {
+          text: "View Feed",
+          onPress: () => router.replace("/(tabs)/Browse"),
+        },
+      ]
+    );
   };
 
   return (

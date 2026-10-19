@@ -13,39 +13,25 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
-
-const STORAGE_KEY = "@lost_reports_v1";
-
-type Report = {
-  id: string;
-  type?: "lost" | "found" | string;
-  category?: string | null;
-  title: string;
-  description?: string;
-  location?: string;
-  handoverSpot?: string;
-  contactName?: string;
-  contactPhone?: string;
-  imageUri?: string | null;
-  createdAt?: string;
-};
+import { fetchReportById, deleteReport as deleteSupabaseReport, ReportItem } from "@/lib/reports";
 
 export default function ReportDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const id = (params?.id as string) || "";
 
-  const [report, setReport] = useState<Report | null>(null);
+  const [report, setReport] = useState<ReportItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadReport = async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        const list: Report[] = raw ? JSON.parse(raw) : [];
-        const found = list.find((r) => r.id === id) || null;
+        if (!id) {
+          setReport(null);
+          return;
+        }
+        const found = await fetchReportById(id);
         setReport(found);
       } catch {
         Alert.alert("Error", "Could not load report details.");
@@ -58,6 +44,7 @@ export default function ReportDetail() {
   }, [id]);
 
   const deleteReport = async () => {
+    if (!report?.id) return;
     Alert.alert(
       "Remove Report",
       "Are you sure you want to remove this report from the campus directory?",
@@ -68,11 +55,12 @@ export default function ReportDetail() {
           style: "destructive",
           onPress: async () => {
             try {
-              const raw = await AsyncStorage.getItem(STORAGE_KEY);
-              const list: Report[] = raw ? JSON.parse(raw) : [];
-              const updated = list.filter((r) => r.id !== report?.id);
-              await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-              router.replace("/(tabs)/Browse");
+              const res = await deleteSupabaseReport(report.id);
+              if (res.success) {
+                router.replace("/(tabs)/Browse");
+              } else {
+                Alert.alert("Error", res.error || "Failed to delete report.");
+              }
             } catch {
               Alert.alert("Error", "Failed to delete report.");
             }
@@ -82,13 +70,18 @@ export default function ReportDetail() {
     );
   };
 
+  const contactPhone = report?.contact_phone || report?.contactPhone;
+  const contactName = report?.contact_name || report?.contactName;
+  const imageUrl = report?.image_url || report?.imageUri;
+  const createdAtDate = report?.created_at || report?.createdAt;
+
   const handleCall = () => {
-    if (!report?.contactPhone) return;
-    const cleanNumber = report.contactPhone.replace(/\s+/g, "");
+    if (!contactPhone) return;
+    const cleanNumber = contactPhone.replace(/\s+/g, "");
     Linking.openURL(`tel:${cleanNumber}`).catch(() => {
       Alert.alert(
         "Contact Reporter",
-        `Phone number: ${report.contactPhone}`
+        `Phone number: ${contactPhone}`
       );
     });
   };
@@ -132,8 +125,8 @@ export default function ReportDetail() {
     );
   }
 
-  const formattedDate = report.createdAt
-    ? new Date(report.createdAt).toLocaleDateString(undefined, {
+  const formattedDate = createdAtDate
+    ? new Date(createdAtDate).toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -188,9 +181,9 @@ export default function ReportDetail() {
       >
         {/* ================= IMAGE SHOWCASE ================= */}
         <View className="border border-[#E4E4E7] rounded-[2px] bg-white overflow-hidden mb-4">
-          {report.imageUri ? (
+          {imageUrl ? (
             <Image
-              source={{ uri: report.imageUri }}
+              source={{ uri: imageUrl }}
               className="w-full h-64"
               resizeMode="cover"
             />
@@ -270,14 +263,14 @@ export default function ReportDetail() {
             <View className="flex-row items-center">
               <Ionicons name="person-circle-outline" size={20} color="#71717A" />
               <Text className="text-xs font-bold text-[#1A1A1A] ml-2">
-                {report.contactName || "Campus Member"}
+                {contactName || "Campus Member"}
               </Text>
             </View>
 
             <View className="flex-row items-center">
               <Ionicons name="call-outline" size={14} color="#71717A" />
               <Text className="text-xs text-[#71717A] ml-1.5">
-                {report.contactPhone || "Hidden"}
+                {contactPhone || "Hidden"}
               </Text>
             </View>
           </View>
@@ -292,6 +285,8 @@ export default function ReportDetail() {
                 params: {
                   id: report.id,
                   title: report.title,
+                  location: report.location || "",
+                  type: report.type || "",
                 },
               } as any)
             }

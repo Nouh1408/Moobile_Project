@@ -1,6 +1,5 @@
 // app/(tabs)/Browse.tsx
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -15,8 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../_providers/AuthProvider";
-
-const STORAGE_KEY = "@lost_reports_v1";
+import { fetchReports, ReportItem } from "@/lib/reports";
 
 const categoryFilters = [
   { key: "all", label: "All Categories", icon: "grid-outline" as const },
@@ -29,18 +27,7 @@ const categoryFilters = [
 type CategoryKey = (typeof categoryFilters)[number]["key"];
 type StatusKey = "all" | "lost" | "found";
 
-type Report = {
-  id: string;
-  category?: string | null;
-  type?: "lost" | "found" | string;
-  title: string;
-  description: string;
-  location?: string;
-  contactName: string;
-  contactPhone: string;
-  imageUri?: string | null;
-  createdAt: string;
-};
+type Report = ReportItem;
 
 export default function Browse() {
   const router = useRouter();
@@ -57,11 +44,10 @@ export default function Browse() {
   const loadItems = useCallback(async () => {
     try {
       setLoading(true);
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const list: Report[] = raw ? JSON.parse(raw) : [];
+      const list = await fetchReports();
       setItems(list);
     } catch (err) {
-      console.error("Failed to load items:", err);
+      console.error("Failed to load items from Supabase:", err);
       setItems([]);
     } finally {
       setLoading(false);
@@ -421,9 +407,9 @@ export default function Browse() {
                 >
                   <View className="flex-row">
                     {/* Thumbnail Image */}
-                    {item.imageUri ? (
+                    {item.image_url || item.imageUri ? (
                       <Image
-                        source={{ uri: item.imageUri }}
+                        source={{ uri: (item.image_url || item.imageUri)! }}
                         className="w-20 h-20 rounded-[2px] mr-3 border border-[#E4E4E7]"
                         resizeMode="cover"
                       />
@@ -478,7 +464,7 @@ export default function Browse() {
                         </View>
 
                         <Text className="text-[10px] text-[#A1A1AA] font-medium">
-                          {formatDate(item.createdAt)}
+                          {formatDate(item.created_at || item.createdAt)}
                         </Text>
                       </View>
 
