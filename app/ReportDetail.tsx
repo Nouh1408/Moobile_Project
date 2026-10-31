@@ -14,15 +14,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { fetchReportById, deleteReport as deleteSupabaseReport, ReportItem } from "@/lib/reports";
+import { useAuth } from "../_providers/AuthProvider";
+import {
+  fetchReportById,
+  deleteReport as deleteSupabaseReport,
+  updateReportStatus,
+  ReportItem,
+} from "@/lib/reports";
 
 export default function ReportDetail() {
   const router = useRouter();
+  const { user } = useAuth();
   const params = useLocalSearchParams();
   const id = (params?.id as string) || "";
 
   const [report, setReport] = useState<ReportItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     const loadReport = async () => {
@@ -43,11 +51,17 @@ export default function ReportDetail() {
     loadReport();
   }, [id]);
 
+  const isOwner = !!(user?.id && report?.user_id && user.id === report.user_id);
+  const isReturned = report?.status === "returned";
+  const isFound =
+    report?.type === "found" ||
+    (report?.title || "").toLowerCase().includes("found");
+
   const deleteReport = async () => {
     if (!report?.id) return;
     Alert.alert(
       "Remove Report",
-      "Are you sure you want to remove this report from the campus directory?",
+      "Are you sure you want to remove this report from the campus directory? This cannot be undone.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -55,19 +69,53 @@ export default function ReportDetail() {
           style: "destructive",
           onPress: async () => {
             try {
+              setActionLoading(true);
               const res = await deleteSupabaseReport(report.id);
+              setActionLoading(false);
               if (res.success) {
                 router.replace("/(tabs)/Browse");
               } else {
                 Alert.alert("Error", res.error || "Failed to delete report.");
               }
             } catch {
+              setActionLoading(false);
               Alert.alert("Error", "Failed to delete report.");
             }
           },
         },
       ]
     );
+  };
+
+  const handleToggleStatus = async () => {
+    if (!report?.id) return;
+    const nextStatus = isReturned ? "open" : "returned";
+    const label = isReturned
+      ? "re-open this report"
+      : "mark this item as returned/recovered";
+
+    Alert.alert("Update Item Status", `Are you sure you want to ${label}?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Confirm",
+        style: "default",
+        onPress: async () => {
+          try {
+            setActionLoading(true);
+            const res = await updateReportStatus(report.id, nextStatus);
+            setActionLoading(false);
+            if (res.success) {
+              setReport((prev) => (prev ? { ...prev, status: nextStatus } : prev));
+            } else {
+              Alert.alert("Error", res.error || "Failed to update status.");
+            }
+          } catch {
+            setActionLoading(false);
+            Alert.alert("Error", "Failed to update status.");
+          }
+        },
+      },
+    ]);
   };
 
   const contactPhone = report?.contact_phone || report?.contactPhone;
@@ -79,16 +127,9 @@ export default function ReportDetail() {
     if (!contactPhone) return;
     const cleanNumber = contactPhone.replace(/\s+/g, "");
     Linking.openURL(`tel:${cleanNumber}`).catch(() => {
-      Alert.alert(
-        "Contact Reporter",
-        `Phone number: ${contactPhone}`
-      );
+      Alert.alert("Contact Reporter", `Phone number: ${contactPhone}`);
     });
   };
-
-  const isFound =
-    report?.type === "found" ||
-    (report?.title || "").toLowerCase().includes("found");
 
   if (loading) {
     return (
@@ -137,7 +178,7 @@ export default function ReportDetail() {
     <SafeAreaView className="flex-1 bg-[#FAFAFA]" edges={["top", "bottom"]}>
       <StatusBar style="dark" />
 
-      {/* ================= FLAT TOP BAR ================= */}
+      {/* ================= TOP NAVIGATION BAR ================= */}
       <View className="px-5 py-3.5 bg-white border-b border-[#E4E4E7] flex-row items-center justify-between">
         <Pressable
           onPress={() => router.back()}
@@ -148,30 +189,42 @@ export default function ReportDetail() {
         </Pressable>
 
         <View className="flex-row items-center">
+          {/* Status Badge */}
           <View
             className={`px-2 py-0.5 rounded-[2px] border mr-2 ${
-              isFound
+              isReturned
+                ? "bg-[#F4F5F7] border-[#D4D4D8]"
+                : isFound
                 ? "bg-[#F0FDF4] border-[#86EFAC]"
                 : "bg-[#FEF2F2] border-[#FCA5A5]"
             }`}
           >
             <Text
               className={`text-[10px] font-bold uppercase tracking-wider ${
-                isFound ? "text-[#16A34A]" : "text-[#DC2626]"
+                isReturned
+                  ? "text-[#71717A]"
+                  : isFound
+                  ? "text-[#16A34A]"
+                  : "text-[#DC2626]"
               }`}
             >
-              {isFound ? "FOUND ITEM" : "LOST ITEM"}
+              {isReturned ? "RETURNED" : isFound ? "FOUND ITEM" : "LOST ITEM"}
             </Text>
           </View>
         </View>
 
-        <Pressable
-          onPress={deleteReport}
-          hitSlop={8}
-          className="w-9 h-9 border border-[#FCA5A5] rounded-[2px] bg-[#FEF2F2] items-center justify-center active:bg-[#FEE2E2]"
-        >
-          <Ionicons name="trash-outline" size={17} color="#DC2626" />
-        </Pressable>
+        {/* Delete button: ONLY visible to the report owner */}
+        {isOwner ? (
+          <Pressable
+            onPress={deleteReport}
+            hitSlop={8}
+            className="w-9 h-9 border border-[#FCA5A5] rounded-[2px] bg-[#FEF2F2] items-center justify-center active:bg-[#FEE2E2]"
+          >
+            <Ionicons name="trash-outline" size={17} color="#DC2626" />
+          </Pressable>
+        ) : (
+          <View className="w-9" />
+        )}
       </View>
 
       <ScrollView
@@ -200,10 +253,20 @@ export default function ReportDetail() {
         {/* ================= TITLE & BADGES CARD ================= */}
         <View className="bg-white border border-[#E4E4E7] rounded-[2px] p-4 mb-4">
           <View className="flex-row items-center justify-between mb-2">
-            <View className="bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 rounded-[2px]">
-              <Text className="text-[10px] font-bold text-[#0066FF] uppercase tracking-wider">
-                {report.category || "General"}
-              </Text>
+            <View className="flex-row items-center gap-1.5">
+              <View className="bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 rounded-[2px]">
+                <Text className="text-[10px] font-bold text-[#0066FF] uppercase tracking-wider">
+                  {report.category || "General"}
+                </Text>
+              </View>
+
+              {isOwner && (
+                <View className="bg-[#1A1A1A] px-2 py-0.5 rounded-[2px]">
+                  <Text className="text-white text-[9px] font-bold uppercase tracking-wider">
+                    Your Post
+                  </Text>
+                </View>
+              )}
             </View>
             <Text className="text-[11px] text-[#71717A]">{formattedDate}</Text>
           </View>
@@ -254,7 +317,7 @@ export default function ReportDetail() {
           </Text>
         </View>
 
-        {/* ================= CONTACT INFO CARD ================= */}
+        {/* ================= REPORTER INFORMATION ================= */}
         <View className="bg-white border border-[#E4E4E7] rounded-[2px] p-4 mb-6">
           <Text className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-2">
             Reporter Information
@@ -263,7 +326,7 @@ export default function ReportDetail() {
             <View className="flex-row items-center">
               <Ionicons name="person-circle-outline" size={20} color="#71717A" />
               <Text className="text-xs font-bold text-[#1A1A1A] ml-2">
-                {contactName || "Campus Member"}
+                {isOwner ? "You (Author)" : contactName || "Campus Member"}
               </Text>
             </View>
 
@@ -276,37 +339,90 @@ export default function ReportDetail() {
           </View>
         </View>
 
-        {/* ================= ACTION BUTTONS ================= */}
+        {/* ================= DYNAMIC CONTEXTUAL ACTION BUTTONS ================= */}
         <View className="gap-2.5">
-          <Pressable
-            onPress={() =>
-              router.push({
-                pathname: "/Chat",
-                params: {
-                  id: report.id,
-                  title: report.title,
-                  location: report.location || "",
-                  type: report.type || "",
-                },
-              } as any)
-            }
-            className="bg-[#0066FF] active:bg-[#0052CC] py-3.5 rounded-[2px] flex-row items-center justify-center"
-          >
-            <Ionicons name="chatbubble-ellipses-outline" size={18} color="#FFFFFF" />
-            <Text className="text-white text-xs font-bold uppercase tracking-wider ml-2">
-              Start Secure Chat
-            </Text>
-          </Pressable>
+          {isOwner ? (
+            /* OWNER CONTROLS */
+            <>
+              <Pressable
+                onPress={handleToggleStatus}
+                disabled={actionLoading}
+                className={`py-3.5 rounded-[2px] flex-row items-center justify-center ${
+                  isReturned
+                    ? "bg-[#1A1A1A] active:bg-[#333333]"
+                    : "bg-[#16A34A] active:bg-[#15803D]"
+                }`}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <>
+                    <Ionicons
+                      name={isReturned ? "refresh-outline" : "checkmark-done-outline"}
+                      size={18}
+                      color="#FFFFFF"
+                    />
+                    <Text className="text-white text-xs font-bold uppercase tracking-wider ml-2">
+                      {isReturned ? "Re-open Report" : "Mark as Returned / Resolved"}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
 
-          <Pressable
-            onPress={handleCall}
-            className="border border-[#1A1A1A] bg-white active:bg-[#F4F5F7] py-3 rounded-[2px] flex-row items-center justify-center"
-          >
-            <Ionicons name="call-outline" size={16} color="#1A1A1A" />
-            <Text className="text-[#1A1A1A] text-xs font-bold uppercase tracking-wider ml-2">
-              Direct Contact
-            </Text>
-          </Pressable>
+              <Pressable
+                onPress={deleteReport}
+                disabled={actionLoading}
+                className="border border-[#DC2626] bg-[#FEF2F2] active:bg-[#FEE2E2] py-3 rounded-[2px] flex-row items-center justify-center"
+              >
+                <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                <Text className="text-[#DC2626] text-xs font-bold uppercase tracking-wider ml-2">
+                  Delete Report
+                </Text>
+              </Pressable>
+            </>
+          ) : (
+            /* VISITOR / OTHER CAMPUS MEMBER CONTROLS */
+            <>
+              {/* Primary Context-Aware Action Button (project.md §6.4) */}
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/Chat",
+                    params: {
+                      id: report.id,
+                      title: report.title,
+                      location: report.location || "",
+                      type: report.type || "",
+                    },
+                  } as any)
+                }
+                className={`py-3.5 rounded-[2px] flex-row items-center justify-center ${
+                  isFound
+                    ? "bg-[#0066FF] active:bg-[#0052CC]"
+                    : "bg-[#16A34A] active:bg-[#15803D]"
+                }`}
+              >
+                <Ionicons
+                  name={isFound ? "hand-right-outline" : "chatbubble-ellipses-outline"}
+                  size={18}
+                  color="#FFFFFF"
+                />
+                <Text className="text-white text-xs font-bold uppercase tracking-wider ml-2">
+                  {isFound ? "This is Mine (Claim Item)" : "I Found This (Chat with Owner)"}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleCall}
+                className="border border-[#1A1A1A] bg-white active:bg-[#F4F5F7] py-3 rounded-[2px] flex-row items-center justify-center"
+              >
+                <Ionicons name="call-outline" size={16} color="#1A1A1A" />
+                <Text className="text-[#1A1A1A] text-xs font-bold uppercase tracking-wider ml-2">
+                  Direct Call / Contact
+                </Text>
+              </Pressable>
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
