@@ -72,15 +72,25 @@ export async function fetchReportById(id: string): Promise<ReportItem | null> {
   }
 }
 
+export function sanitizeCategory(cat?: string | null): "device" | "money" | "id" | "other" {
+  const c = (cat || "").toLowerCase().trim();
+  if (c === "devices" || c === "device" || c === "electronics" || c === "phone") return "device";
+  if (c === "money" || c === "wallet" || c === "wallets" || c === "cash") return "money";
+  if (c === "id" || c === "ids" || c === "card" || c === "cards" || c === "keys") return "id";
+  return "other";
+}
+
 export async function createReport(
   payload: NewReportPayload
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const safeCategory = sanitizeCategory(payload.category);
+
     const { error } = await supabase.from("reports").insert([
       {
         user_id: payload.user_id,
         type: payload.type,
-        category: payload.category,
+        category: safeCategory,
         title: payload.title,
         description: payload.description,
         location: payload.location,

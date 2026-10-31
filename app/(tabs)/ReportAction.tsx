@@ -21,7 +21,7 @@ import { useAuth } from "../../_providers/AuthProvider";
 import { createReport } from "@/lib/reports";
 
 const categoryOptions = [
-  { key: "devices", label: "Devices", icon: "phone-portrait-outline" as const },
+  { key: "device", label: "Devices", icon: "phone-portrait-outline" as const },
   { key: "money", label: "Wallets", icon: "wallet-outline" as const },
   { key: "id", label: "IDs/Cards", icon: "card-outline" as const },
   { key: "other", label: "Other", icon: "cube-outline" as const },
@@ -42,7 +42,7 @@ export default function ReportAction() {
 
   // Mode: "lost" vs "found"
   const [reportType, setReportType] = useState<"lost" | "found">("lost");
-  const [category, setCategory] = useState<string>("devices");
+  const [category, setCategory] = useState<string>("device");
   const [itemName, setItemName] = useState("");
   const [location, setLocation] = useState("");
   const [dateTime, setDateTime] = useState("");

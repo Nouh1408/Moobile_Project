@@ -9,7 +9,7 @@ import CategoryType from "@/components/CategoryType";
 
 const categories = [
   {
-    key: "devices",
+    key: "device",
     title: "Electronics & Devices",
     description: "Phones, laptops, tablets, headphones, chargers",
     icon: "phone-portrait-outline" as const,

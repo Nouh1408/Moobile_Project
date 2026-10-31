@@ -21,7 +21,7 @@ import { useAuth } from "../_providers/AuthProvider";
 import { createReport } from "@/lib/reports";
 
 const categoryOptions = [
-  { key: "devices", label: "Devices", icon: "phone-portrait-outline" as const },
+  { key: "device", label: "Devices", icon: "phone-portrait-outline" as const },
   { key: "money", label: "Wallets", icon: "wallet-outline" as const },
   { key: "id", label: "IDs/Keys", icon: "card-outline" as const },
   { key: "other", label: "Other", icon: "cube-outline" as const },
@@ -40,7 +40,7 @@ export default function FormLost() {
   const router = useRouter();
   const { user } = useAuth();
   const params = useLocalSearchParams();
-  const initialCategory = (params?.category as string) || "devices";
+  const initialCategory = (params?.category as string) || "device";
 
   const [category, setCategory] = useState<string>(initialCategory);
   const [itemName, setItemName] = useState("");
