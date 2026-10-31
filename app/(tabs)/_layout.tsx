@@ -93,19 +93,10 @@ export default function Layout() {
           name="ReportAction"
           options={{
             tabBarLabel: "Report",
-            tabBarButton: () => (
-              <Pressable
-                onPress={openReportSelection}
-                className="items-center justify-center -top-2 flex-1"
-                hitSlop={10}
-              >
-                <View className="w-12 h-12 bg-[#1A1A1A] border border-[#2D2D2D] rounded-[2px] items-center justify-center shadow-none active:bg-[#0066FF]">
-                  <Ionicons name="add" size={26} color="#FFFFFF" />
-                </View>
-                <Text className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider mt-0.5">
-                  Report
-                </Text>
-              </Pressable>
+            tabBarIcon: ({ color }) => (
+              <View className="w-11 h-11 bg-[#1A1A1A] border border-[#2D2D2D] rounded-[2px] items-center justify-center -top-1.5 active:bg-[#0066FF]">
+                <Ionicons name="add" size={24} color="#FFFFFF" />
+              </View>
             ),
           }}
           listeners={{
