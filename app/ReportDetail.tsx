@@ -4,10 +4,14 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
   Linking,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +35,10 @@ export default function ReportDetail() {
   const [report, setReport] = useState<ReportItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Verification challenge claim modal
+  const [claimModalVisible, setClaimModalVisible] = useState(false);
+  const [claimProof, setClaimProof] = useState("");
 
   useEffect(() => {
     const loadReport = async () => {
@@ -129,6 +137,46 @@ export default function ReportDetail() {
     Linking.openURL(`tel:${cleanNumber}`).catch(() => {
       Alert.alert("Contact Reporter", `Phone number: ${contactPhone}`);
     });
+  };
+
+  const handleClaimItem = () => {
+    if (isFound) {
+      // Finder requires answering a verification challenge
+      setClaimProof("");
+      setClaimModalVisible(true);
+    } else {
+      // Lost item: open chat directly
+      router.push({
+        pathname: "/Chat",
+        params: {
+          id: report!.id,
+          title: report!.title,
+          location: report!.location || "",
+          type: report!.type || "",
+        },
+      } as any);
+    }
+  };
+
+  const handleConfirmClaimProof = () => {
+    if (!claimProof.trim()) {
+      Alert.alert(
+        "Verification Required",
+        "Please provide some identifying details to help the finder confirm you are the rightful owner."
+      );
+      return;
+    }
+    setClaimModalVisible(false);
+    router.push({
+      pathname: "/Chat",
+      params: {
+        id: report!.id,
+        title: report!.title,
+        location: report!.location || "",
+        type: report!.type || "",
+        claimProof: claimProof.trim(),
+      },
+    } as any);
   };
 
   if (loading) {
@@ -383,19 +431,9 @@ export default function ReportDetail() {
           ) : (
             /* VISITOR / OTHER CAMPUS MEMBER CONTROLS */
             <>
-              {/* Primary Context-Aware Action Button (project.md §6.4) */}
+              {/* Primary Context-Aware Action Button (project.md §6.4 & §7) */}
               <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/Chat",
-                    params: {
-                      id: report.id,
-                      title: report.title,
-                      location: report.location || "",
-                      type: report.type || "",
-                    },
-                  } as any)
-                }
+                onPress={handleClaimItem}
                 className={`py-3.5 rounded-[2px] flex-row items-center justify-center ${
                   isFound
                     ? "bg-[#0066FF] active:bg-[#0052CC]"
@@ -425,6 +463,83 @@ export default function ReportDetail() {
           )}
         </View>
       </ScrollView>
+
+      {/* ================= OWNERSHIP VERIFICATION CHALLENGE MODAL (project.md §7) ================= */}
+      <Modal
+        visible={claimModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setClaimModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1"
+        >
+          <Pressable
+            className="flex-1 bg-black/60 items-center justify-center px-6"
+            onPress={() => setClaimModalVisible(false)}
+          >
+            <Pressable
+              className="w-full bg-white border border-[#E4E4E7] rounded-[2px] p-5"
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View className="flex-row items-center justify-between mb-3 border-b border-[#E4E4E7] pb-3">
+                <View className="flex-row items-center">
+                  <View className="w-7 h-7 bg-[#EFF6FF] rounded-[2px] items-center justify-center mr-2 border border-[#BFDBFE]">
+                    <Ionicons name="shield-checkmark" size={15} color="#0066FF" />
+                  </View>
+                  <Text className="text-sm font-bold text-[#1A1A1A] uppercase tracking-wider">
+                    Verify Ownership
+                  </Text>
+                </View>
+
+                <Pressable
+                  onPress={() => setClaimModalVisible(false)}
+                  hitSlop={8}
+                  className="w-7 h-7 rounded-[2px] bg-[#FAFAFA] border border-[#E4E4E7] items-center justify-center"
+                >
+                  <Ionicons name="close" size={16} color="#71717A" />
+                </Pressable>
+              </View>
+
+              <Text className="text-xs text-[#4A4A4A] leading-5 mb-3">
+                To protect found property on campus, describe unique details only the rightful owner would know (e.g. lockscreen wallpaper, stickers, case color, or contents):
+              </Text>
+
+              <TextInput
+                value={claimProof}
+                onChangeText={setClaimProof}
+                placeholder="e.g. The phone has a transparent case with a green cat sticker and a blue wallpaper..."
+                placeholderTextColor="#A1A1AA"
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-[2px] p-3 text-xs text-[#1A1A1A] min-h-[85px] mb-4"
+              />
+
+              <View className="flex-row gap-2">
+                <Pressable
+                  onPress={() => setClaimModalVisible(false)}
+                  className="flex-1 py-3 border border-[#E4E4E7] rounded-[2px] items-center justify-center active:bg-[#F4F5F7]"
+                >
+                  <Text className="text-xs font-bold text-[#71717A] uppercase tracking-wider">
+                    Cancel
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={handleConfirmClaimProof}
+                  className="flex-1 py-3 bg-[#0066FF] active:bg-[#0052CC] rounded-[2px] items-center justify-center"
+                >
+                  <Text className="text-xs font-bold text-white uppercase tracking-wider">
+                    Submit & Chat
+                  </Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }

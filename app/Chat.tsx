@@ -1,5 +1,16 @@
 // app/Chat.tsx
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import {
+  ChatMessage,
+  fetchChatMessages,
+  markReportReturned,
+  sendChatMessage,
+  subscribeToChat,
+} from "@/lib/chat";
+import { fetchReportById, ReportItem } from "@/lib/reports";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,18 +27,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "../_providers/AuthProvider";
-import {
-  ChatMessage,
-  fetchChatMessages,
-  sendChatMessage,
-  subscribeToChat,
-  markReportReturned,
-} from "@/lib/chat";
-import { fetchReportById, ReportItem } from "@/lib/reports";
 
 const quickResponses = [
   "Is this item still available?",
@@ -46,6 +46,7 @@ export default function Chat() {
   const reportId = (params?.id as string) || "";
   const paramTitle = (params?.title as string) || "Campus Item";
   const paramLocation = (params?.location as string) || "Campus";
+  const initialClaimProof = (params?.claimProof as string) || "";
 
   const [report, setReport] = useState<ReportItem | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -55,6 +56,7 @@ export default function Chat() {
   const [isReturned, setIsReturned] = useState(false);
 
   const listRef = useRef<FlatList<ChatMessage> | null>(null);
+  const claimSentRef = useRef(false);
 
   // Derive sender display name
   const senderName = user?.email
@@ -83,6 +85,18 @@ export default function Chat() {
             if (rep.status === "returned") {
               setIsReturned(true);
             }
+          }
+
+          // If claimant provided verification proof upon clicking "This is Mine", auto-post it
+          if (initialClaimProof && !claimSentRef.current && user?.id) {
+            claimSentRef.current = true;
+            await sendChatMessage(
+              reportId,
+              user.id,
+              `🛡️ Ownership Verification Claim:\n"${initialClaimProof.trim()}"`
+            );
+            const refreshed = await fetchChatMessages(reportId);
+            setMessages(refreshed);
           }
         }
       } catch (err) {
@@ -148,15 +162,15 @@ export default function Chat() {
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         Alert.alert(
           "Message Failed",
-          res.error || "Could not deliver message to campus chat."
+          res.error || "Could not deliver message to campus chat.",
         );
       } else if (res.data) {
         setMessages((prev) =>
-          prev.map((m) => (m.id === tempId ? res.data! : m))
+          prev.map((m) => (m.id === tempId ? res.data! : m)),
         );
       }
     },
-    [text, sending, user?.id, reportId]
+    [text, sending, user?.id, reportId],
   );
 
   // Mark item as returned
@@ -175,15 +189,17 @@ export default function Chat() {
               setIsReturned(true);
               Alert.alert(
                 "Handover Recorded",
-                "Item status updated to Returned. Thank you for helping the campus community!"
+                "Item status updated to Returned. Thank you for helping the campus community!",
               );
-              handleSendMessage("🏁 Item handover complete. Marked as returned.");
+              handleSendMessage(
+                "🏁 Item handover complete. Marked as returned.",
+              );
             } else {
               Alert.alert("Error", res.error || "Could not update status.");
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -196,14 +212,18 @@ export default function Chat() {
         {
           text: "Ask for Wallpaper/Lockscreen",
           onPress: () =>
-            handleSendMessage("🔐 Verification Question: Can you describe the lockscreen wallpaper or device color?"),
+            handleSendMessage(
+              "🔐 Verification Question: Can you describe the lockscreen wallpaper or device color?",
+            ),
         },
         {
           text: "Ask for Identifying Marks",
           onPress: () =>
-            handleSendMessage("🔐 Verification Question: What unique stickers, marks, or serial number does this have?"),
+            handleSendMessage(
+              "🔐 Verification Question: What unique stickers, marks, or serial number does this have?",
+            ),
         },
-      ]
+      ],
     );
   };
 
@@ -224,9 +244,7 @@ export default function Chat() {
       <View className={`mb-3 ${isMe ? "items-end" : "items-start"}`}>
         <View
           className={`px-3.5 py-2.5 max-w-[82%] rounded-[2px] border ${
-            isMe
-              ? "bg-[#0066FF] border-[#0052CC]"
-              : "bg-white border-[#E4E4E7]"
+            isMe ? "bg-[#0066FF] border-[#0052CC]" : "bg-white border-[#E4E4E7]"
           }`}
         >
           <Text
@@ -335,8 +353,8 @@ export default function Chat() {
                   isReturned
                     ? "bg-[#F4F5F7]"
                     : isFound
-                    ? "bg-[#DCFCE7]"
-                    : "bg-[#FEE2E2]"
+                      ? "bg-[#DCFCE7]"
+                      : "bg-[#FEE2E2]"
                 }`}
               >
                 <Text
@@ -344,8 +362,8 @@ export default function Chat() {
                     isReturned
                       ? "text-[#71717A]"
                       : isFound
-                      ? "text-[#16A34A]"
-                      : "text-[#DC2626]"
+                        ? "text-[#16A34A]"
+                        : "text-[#DC2626]"
                   }`}
                 >
                   {isReturned ? "RETURNED" : isFound ? "FOUND" : "LOST"}
@@ -376,7 +394,10 @@ export default function Chat() {
       <View className="bg-[#F0FDF4] border-b border-[#86EFAC] px-4 py-2 flex-row items-center justify-between">
         <View className="flex-row items-center flex-1 mr-2">
           <Ionicons name="shield-checkmark" size={14} color="#16A34A" />
-          <Text className="text-[11px] text-[#166534] font-medium ml-1.5 flex-1" numberOfLines={1}>
+          <Text
+            className="text-[11px] text-[#166534] font-medium ml-1.5 flex-1"
+            numberOfLines={1}
+          >
             Safe Spot: Main Library Desk or Campus Security (Gate 2).
           </Text>
         </View>
@@ -418,7 +439,8 @@ export default function Chat() {
                   Start the conversation
                 </Text>
                 <Text className="text-xs text-[#71717A] text-center mt-1 max-w-xs leading-4">
-                  Arrange a safe campus meetup or verify identifying details about this item.
+                  Arrange a safe campus meetup or verify identifying details
+                  about this item.
                 </Text>
               </View>
             ) : (
