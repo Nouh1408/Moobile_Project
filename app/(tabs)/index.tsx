@@ -1,6 +1,7 @@
 // app/(tabs)/index.tsx
 import React, { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Pressable,
@@ -21,15 +22,21 @@ export default function Index() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [recentItems, setRecentItems] = useState<ReportItem[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadRecentItems = useCallback(async () => {
     try {
       const list = await fetchReports();
+      setTotalCount(list.length);
       // Take up to 3 most recent items
       setRecentItems(list.slice(0, 3));
     } catch {
       setRecentItems([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -238,12 +245,19 @@ export default function Index() {
               hitSlop={8}
             >
               <Text className="text-xs font-bold text-[#0066FF]">
-                View All ({recentItems.length})
+                {totalCount > 0 ? `View All (${totalCount}) →` : "View All →"}
               </Text>
             </Pressable>
           </View>
 
-          {recentItems.length === 0 ? (
+          {loading ? (
+            <View className="bg-white border border-[#E4E4E7] rounded-[2px] p-6 items-center justify-center">
+              <ActivityIndicator size="small" color="#0066FF" />
+              <Text className="text-[11px] text-[#71717A] mt-2 font-medium">
+                Loading campus reports…
+              </Text>
+            </View>
+          ) : recentItems.length === 0 ? (
             <View className="bg-white border border-[#E4E4E7] rounded-[2px] p-5 items-center justify-center">
               <Ionicons name="file-tray-outline" size={28} color="#A1A1AA" />
               <Text className="text-xs font-bold text-[#1A1A1A] mt-2">
@@ -263,50 +277,72 @@ export default function Index() {
             </View>
           ) : (
             <View className="gap-2.5">
-              {recentItems.map((item) => (
-                <Pressable
-                  key={item.id}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/ReportDetail",
-                      params: { id: item.id },
-                    } as any)
-                  }
-                  className="bg-white border border-[#E4E4E7] rounded-[2px] p-3 flex-row items-center active:bg-[#F4F5F7]"
-                >
-                  {item.image_url || item.imageUri ? (
-                    <Image
-                      source={{ uri: (item.image_url || item.imageUri)! }}
-                      className="w-12 h-12 rounded-[2px] mr-3 border border-[#E4E4E7]"
-                    />
-                  ) : (
-                    <View className="w-12 h-12 rounded-[2px] mr-3 bg-[#F4F5F7] border border-[#E4E4E7] items-center justify-center">
-                      <Ionicons name="cube-outline" size={18} color="#71717A" />
+              {recentItems.map((item) => {
+                const isFoundType = item.type === "found";
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/ReportDetail",
+                        params: { id: item.id },
+                      } as any)
+                    }
+                    className="bg-white border border-[#E4E4E7] rounded-[2px] p-3 flex-row items-center active:bg-[#F4F5F7]"
+                  >
+                    {item.image_url || item.imageUri ? (
+                      <Image
+                        source={{ uri: (item.image_url || item.imageUri)! }}
+                        className="w-12 h-12 rounded-[2px] mr-3 border border-[#E4E4E7]"
+                      />
+                    ) : (
+                      <View className="w-12 h-12 rounded-[2px] mr-3 bg-[#F4F5F7] border border-[#E4E4E7] items-center justify-center">
+                        <Ionicons
+                          name={isFoundType ? "cube-outline" : "search-outline"}
+                          size={18}
+                          color="#71717A"
+                        />
+                      </View>
+                    )}
+
+                    <View className="flex-1 mr-2">
+                      <View className="flex-row items-center mb-0.5">
+                        <View
+                          className={`px-1.5 py-0.5 rounded-[2px] mr-1.5 ${
+                            isFoundType ? "bg-[#DCFCE7]" : "bg-[#FEE2E2]"
+                          }`}
+                        >
+                          <Text
+                            className={`text-[9px] font-bold uppercase tracking-wider ${
+                              isFoundType ? "text-[#16A34A]" : "text-[#DC2626]"
+                            }`}
+                          >
+                            {isFoundType ? "FOUND" : "LOST"}
+                          </Text>
+                        </View>
+                        <Text
+                          className="text-xs font-bold text-[#1A1A1A] flex-1"
+                          numberOfLines={1}
+                        >
+                          {item.title}
+                        </Text>
+                      </View>
+                      <Text
+                        className="text-[11px] text-[#71717A]"
+                        numberOfLines={1}
+                      >
+                        {item.location || "Campus Grounds"}
+                      </Text>
                     </View>
-                  )}
 
-                  <View className="flex-1 mr-2">
-                    <Text
-                      className="text-xs font-bold text-[#1A1A1A]"
-                      numberOfLines={1}
-                    >
-                      {item.title}
-                    </Text>
-                    <Text
-                      className="text-[11px] text-[#71717A] mt-0.5"
-                      numberOfLines={1}
-                    >
-                      {item.location || "Campus Grounds"}
-                    </Text>
-                  </View>
-
-                  <View className="bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-1 rounded-[2px]">
-                    <Text className="text-[10px] font-bold text-[#0066FF] uppercase">
-                      {item.category || "Item"}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
+                    <View className="bg-[#F4F5F7] border border-[#E4E4E7] px-2 py-1 rounded-[2px]">
+                      <Text className="text-[10px] font-bold text-[#4A4A4A] uppercase">
+                        {item.category || "Item"}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           )}
         </View>
