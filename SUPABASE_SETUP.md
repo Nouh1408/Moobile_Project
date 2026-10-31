@@ -249,3 +249,4 @@ A complete scan of the codebase confirms the following architecture status:
 ### Notes for the Backend Developer:
 - **Image Storage**: Currently, images picked via `expo-image-picker` are compressed (`quality: 0.6`) and stored directly as `data:image/jpeg;base64,...` strings in `reports.image_url`. This means **no Supabase Storage Bucket configuration is required** for photos to work across devices immediately. If scaling to thousands of high-res photos in the future, `image_url` can seamlessly hold public URLs from a Supabase Storage bucket.
 - **Unused Legacy Components**: `components/CategoryType.tsx`, `components/ReportFTitle.tsx`, `components/SearchBar.tsx`, and `hooks/UseLocation.tsx` are leftover helper files from early prototyping and are not required by the active screens.
+
