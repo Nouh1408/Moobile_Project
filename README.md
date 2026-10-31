@@ -1,50 +1,127 @@
-# Welcome to your Expo app 👋
+# NMU Campus Lost & Found Mobile App 🎓🔍
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A centralized, mobile-first campus item recovery platform developed for university students, faculty, and security staff. Built with **React Native (Expo SDK 58)**, **NativeWind (Tailwind CSS)**, and backed by **Supabase (PostgreSQL & Realtime)**.
 
-## Get started
+---
 
-1. Install dependencies
+## 🌟 Key Features
 
+### 1. 🔐 Campus-Only Authentication & Security
+- **Domain-Restricted Access**: Strictly enforces official university emails (`@nmu.edu.eg`) or Egyptian phone numbers (`+20`).
+- **Instant Session Provisioning**: Direct password-based authentication with automated session persistence via `@react-native-async-storage/async-storage`.
+- **Ownership Gating**: Item deletion and resolution are locked strictly to the original reporter's verified `user_id`.
+
+### 2. 📱 Unified Single-Page Reporting (`/ReportAction`)
+- **Instant Type Switch**: Single tap toggle between **[ I Lost Something ]** (Red) and **[ I Found Something ]** (Blue).
+- **Photo Upload**: Supports both Camera capture and Photo Library gallery picking via `expo-image-picker`.
+- **Campus Spot Presets**: Quick-select presets for major university buildings (*Main Library, Engineering Hall A, Student Center, Cafeteria, Sports Complex, Security Gate 2*).
+- **Database Normalization**: Client-side sanitization ensuring compliance with PostgreSQL constraints (`device`, `money`, `id`, `other`).
+
+### 3. 🔎 Search, Filter & Directory (`/Browse`)
+- **Live Search**: Instant text filtering across item title, description, category, and campus location.
+- **Segmented Control**: Filter by **All**, **Lost**, or **Found** items.
+- **Category Chips**: Fast single-tap category chips for Devices, Wallets, IDs/Cards, and Miscellaneous.
+- **Color-Coded Status Cards**: High-contrast, 2D flat cards with relative timestamping.
+
+### 4. ⚡ Algorithmic Suggested Matches (`/Matches`)
+- **Automated Cross-Type Matching**: Automatically correlates active Lost posts against newly submitted Found posts.
+- **Confidence Scoring Algorithm (%)**:
+  - Category match (50 points)
+  - Keyword title & description overlap (up to 30 points)
+  - Campus spot proximity (20 points)
+- **Side-by-Side Comparison**: Side-by-side card UI comparing user reports with potential matches, with **Dismiss** and **View & Claim** actions.
+
+### 5. 💬 Real-Time Chat & Handover (`/Chat`)
+- **Postgres Change Stream**: Live peer-to-peer messaging using Supabase Realtime WebSocket subscriptions.
+- **Pinned Item Snapshot**: Pinned top banner showing the exact item under discussion with direct navigation back to post details.
+- **Safe Handover Spot Advice**: Pinned guidance directing students to official campus pickup points (*Library Reception Desk / Gate 2 Security*).
+- **Ownership Verification Challenges**: Allows finders to demand proof of ownership (e.g. lock screen wallpaper, serial numbers, case markings) before agreeing to hand over.
+- **Handover Confirmation**: Either party can tap **"Resolved / Handover"** to update database status to `returned` in real time.
+
+### 6. 👤 Profile & Reports Management (`/Profile`)
+- **Active vs. Returned Tabs**: Distinct tracking for active open reports versus resolved/returned items.
+- **Status Toggle**: Re-open or mark items as returned with a single tap.
+- **User Identity & Metrics**: Displays university email/phone, student UID, and active metrics.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Framework**: [Expo SDK 58](https://expo.dev) / React Native 0.88
+- **Routing**: [Expo Router v58](https://docs.expo.dev/router/introduction/) (File-based navigation)
+- **Styling**: [NativeWind v4](https://www.nativewind.dev/) (Tailwind CSS 3.4) with Flat 2D aesthetic tokens
+- **Backend / Database**: [Supabase](https://supabase.com/) (PostgreSQL 15, Row-Level Security, Realtime Channels)
+- **Icons**: `@expo/vector-icons` (Ionicons)
+- **Language**: TypeScript 5.8+ (Strict type-checking)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js**: `>= 22.13.0` (or Node 25 with `nvm`)
+- **Mobile Device**: [Expo Go](https://expo.dev/go) (SDK 58 compatible)
+
+### Installation
+
+1. **Clone repository**:
    ```bash
-   npm install
+   git clone https://github.com/your-username/Moobile_Project.git
+   cd Moobile_Project
    ```
 
-2. Start the app
-
+2. **Install dependencies**:
    ```bash
-   npx expo start
+   npm install --legacy-peer-deps
    ```
 
-In the output, you'll find options to open the app in a
+3. **Configure Environment Variables**:
+   Create a `.env` file in the project root:
+   ```env
+   EXPO_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+4. **Start the development server**:
+   ```bash
+   npx expo start -c
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+5. **Open on Device**:
+   Scan the terminal QR code using **Expo Go** on your Android or iOS device.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 🗄️ Database Schema Overview
 
-```bash
-npm run reset-project
+```sql
+-- Reports table
+CREATE TABLE public.reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL CHECK (type IN ('lost', 'found')),
+    category TEXT NOT NULL CHECK (category IN ('device', 'money', 'id', 'other')),
+    title TEXT NOT NULL,
+    description TEXT,
+    location TEXT NOT NULL,
+    contact_name TEXT NOT NULL,
+    contact_phone TEXT NOT NULL,
+    image_url TEXT,
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'returned')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Realtime Messages table
+CREATE TABLE public.messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id UUID REFERENCES public.reports(id) ON DELETE CASCADE,
+    sender_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 👥 Contributors & Academic Context
+Developed as an official university mobile application project for **New Mansoura University (NMU)** to streamline campus asset recovery.
