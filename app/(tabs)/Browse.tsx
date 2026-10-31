@@ -201,7 +201,7 @@ export default function Browse() {
         </View>
 
         <Pressable
-          onPress={() => router.push("/ReportLostItem")}
+          onPress={() => router.push("/(tabs)/ReportAction")}
           className="bg-[#0066FF] active:bg-[#0052CC] px-3 py-2 rounded-[2px] flex-row items-center"
         >
           <Ionicons name="add" size={16} color="#FFFFFF" />
@@ -373,7 +373,7 @@ export default function Browse() {
               </Pressable>
 
               <Pressable
-                onPress={() => router.push("/ReportLostItem")}
+                onPress={() => router.push("/(tabs)/ReportAction")}
                 className="bg-[#0066FF] px-3.5 py-2 rounded-[2px]"
               >
                 <Text className="text-xs font-bold text-white uppercase tracking-wider">

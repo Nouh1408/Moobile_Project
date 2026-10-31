@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../_providers/AuthProvider";
 import { createReport } from "@/lib/reports";
@@ -39,9 +39,19 @@ const campusPresets = [
 export default function ReportAction() {
   const router = useRouter();
   const { user } = useAuth();
+  const params = useLocalSearchParams<{ mode?: "lost" | "found" }>();
 
   // Mode: "lost" vs "found"
-  const [reportType, setReportType] = useState<"lost" | "found">("lost");
+  const [reportType, setReportType] = useState<"lost" | "found">(
+    params.mode === "found" ? "found" : "lost"
+  );
+
+  React.useEffect(() => {
+    if (params.mode === "lost" || params.mode === "found") {
+      setReportType(params.mode);
+    }
+  }, [params.mode]);
+
   const [category, setCategory] = useState<string>("device");
   const [itemName, setItemName] = useState("");
   const [location, setLocation] = useState("");

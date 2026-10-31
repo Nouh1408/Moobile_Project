@@ -258,7 +258,12 @@ export default function Profile() {
         {/* ================= FAST ACTION BUTTONS ================= */}
         <View className="flex-row gap-2.5 mb-5">
           <Pressable
-            onPress={() => router.push("/ReportLostItem")}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/ReportAction",
+                params: { mode: "lost" },
+              })
+            }
             className="flex-1 bg-[#1A1A1A] active:bg-[#333333] py-2.5 px-3 rounded-[2px] flex-row items-center justify-center border border-[#1A1A1A]"
           >
             <Ionicons name="search" size={14} color="#FFFFFF" />
@@ -268,7 +273,12 @@ export default function Profile() {
           </Pressable>
 
           <Pressable
-            onPress={() => router.push("/ReportFoundItem")}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/ReportAction",
+                params: { mode: "found" },
+              })
+            }
             className="flex-1 bg-[#0066FF] active:bg-[#0052CC] py-2.5 px-3 rounded-[2px] flex-row items-center justify-center border border-[#0066FF]"
           >
             <Ionicons name="cube-outline" size={14} color="#FFFFFF" />
@@ -353,7 +363,12 @@ export default function Profile() {
 
             {activeTab === "active" && (
               <Pressable
-                onPress={() => router.push("/ReportLostItem")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(tabs)/ReportAction",
+                    params: { mode: "lost" },
+                  })
+                }
                 className="mt-4 bg-[#1A1A1A] px-3.5 py-2 rounded-[2px]"
               >
                 <Text className="text-white text-xs font-bold uppercase tracking-wider">

@@ -168,7 +168,12 @@ export default function Index() {
         <View className="flex-row gap-3 mb-5">
           {/* Report Lost Card */}
           <Pressable
-            onPress={() => router.push("/ReportLostItem")}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/ReportAction",
+                params: { mode: "lost" },
+              })
+            }
             className="flex-1 bg-[#1A1A1A] border border-[#1A1A1A] rounded-[2px] p-4 justify-between active:opacity-90"
           >
             <View className="flex-row items-center justify-between mb-3">
@@ -194,7 +199,12 @@ export default function Index() {
 
           {/* Report Found Card */}
           <Pressable
-            onPress={() => router.push("/ReportFoundItem")}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/ReportAction",
+                params: { mode: "found" },
+              })
+            }
             className="flex-1 bg-[#0066FF] border border-[#0066FF] rounded-[2px] p-4 justify-between active:opacity-90"
           >
             <View className="flex-row items-center justify-between mb-3">
@@ -267,7 +277,12 @@ export default function Index() {
                 Be the first to report a lost or found item.
               </Text>
               <Pressable
-                onPress={() => router.push("/ReportLostItem")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(tabs)/ReportAction",
+                    params: { mode: "lost" },
+                  })
+                }
                 className="mt-3 bg-[#1A1A1A] px-3.5 py-2 rounded-[2px]"
               >
                 <Text className="text-white text-xs font-bold uppercase tracking-wider">

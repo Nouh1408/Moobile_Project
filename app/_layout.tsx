@@ -39,11 +39,7 @@ function RootNavigation() {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="ReportLostItem" options={{ headerShown: false }} />
-      <Stack.Screen name="ReportFoundItem" options={{ headerShown: false }} />
       <Stack.Screen name="ReportDetail" options={{ headerShown: false }} />
-      <Stack.Screen name="FormLost" options={{ headerShown: false }} />
-      <Stack.Screen name="FormFound" options={{ headerShown: false }} />
       <Stack.Screen name="Chat" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/Login" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/Register" options={{ headerShown: false }} />
