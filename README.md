@@ -82,20 +82,41 @@ A centralized, mobile-first campus item recovery platform developed for universi
    EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
    ```
 
-4. **Start the development server**:
-   ```bash
-   npx expo start -c
-   ```
-
-5. **Open on Device**:
-   Scan the terminal QR code using **Expo Go** on your Android or iOS device.
+4. **Start & Run the Application (Choose a Mode)**:
+   - **Standard LAN (Phone & PC on same Wi-Fi)**:
+     ```bash
+     npx expo start -c
+     ```
+   - **Tunnel Mode (For Campus / Restricted Wi-Fi or Mobile Data)**:
+     ```bash
+     npx expo start --tunnel -c
+     ```
+   - **Android Emulator (Android Studio)**:
+     ```bash
+     npx expo start --android -c
+     ```
+   - **Web Browser Preview**:
+     ```bash
+     npx expo start --web -c
+     ```
 
 ---
 
-## 🗄️ Database Schema Overview
+## 🗄️ Database Schema & Supabase Setup
+
+For the **complete SQL migration script** (including Row-Level Security policies, auth-to-profile triggers, indexes, and Supabase Dashboard settings), see **[`SUPABASE_SETUP.md`](./SUPABASE_SETUP.md)**.
 
 ```sql
--- Reports table
+-- 1. Profiles table (Auto-populated via auth.users trigger)
+CREATE TABLE public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email TEXT,
+    full_name TEXT,
+    phone TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Reports table
 CREATE TABLE public.reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -111,7 +132,7 @@ CREATE TABLE public.reports (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Realtime Messages table
+-- 3. Realtime Messages table
 CREATE TABLE public.messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     report_id UUID REFERENCES public.reports(id) ON DELETE CASCADE,
